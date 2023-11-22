@@ -25,7 +25,7 @@ class Tabuleiro:
     self.tabuleiro[-1][-1] = 0
     self.x = self.lado - 1
     self.y = self.lado - 1
-    
+
   def inicializa_tabuleiro_custom(self, custom_state):
     self.tabuleiro = custom_state
     player_position = self.get_player_position() #pega posição do player e seta no self.x e self.y
@@ -136,5 +136,7 @@ class Tabuleiro:
     print(f'x = {self.x}, y = {self.y}')
 
   def print_tabuleiro(self):
+    print("-----------------------")
     for linha in self.tabuleiro:
       print(linha)
+    print("-----------------------")
