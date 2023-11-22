@@ -136,7 +136,5 @@ class Tabuleiro:
     print(f'x = {self.x}, y = {self.y}')
 
   def print_tabuleiro(self):
-    print("-----------------------")
     for linha in self.tabuleiro:
       print(linha)
-    print("-----------------------")

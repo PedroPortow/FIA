@@ -1,5 +1,5 @@
 from tabuleiro import Tabuleiro
-import copy
+from copy import deepcopy
 
 # Algoritmos necessários:
 
@@ -28,41 +28,42 @@ class QuebraCabeca:
     self.tabuleiro = Tabuleiro(lado, random)
     self.realized_movements = []
     
-  def busca_em_largura(self):
-            # obj tabuluiro  #next_move #moves made
-    queue = [(self.tabuleiro, "", [])] 
-    visited = []
+  def isnt_solvable(self):
+    flatten_board = [tile for row in self.tabuleiro.tabuleiro for tile in row]
+    inversions = sum(
+        sum(flatten_board[i] > flatten_board[j] and flatten_board[j] != 0 for j in range(i + 1, len(flatten_board)))
+        for i in range(len(flatten_board) - 1)
+    )
+    blank_row = next(i for i, row in enumerate(self.tabuleiro.tabuleiro) if 0 in row) + 1  # 1-based indexing
+
+    if self.lado % 2 == 1:
+        return inversions % 2 == 0
+    else:
+        return (inversions + blank_row) % 2 == 1
+
     
+  def busca_em_largura(self):
+    queue = [self.tabuleiro]
+    visited = [self.tabuleiro.tabuleiro]
+
     while queue:
-      current_board, movement_to_do, moves_done = queue.pop(0)
-      
+      current_board = queue.pop(0)
+
       if self.final_state_verifier(current_board.tabuleiro):
-        print("glória")
-        for moves in moves_done:
-          print(moves)
-        return
-      
-      # if current_board.tabuleiro in visited:
-      #   print("caiu na desgraça vvv")
-      #   continue
-      
-      current_board.print_tabuleiro()
-      
-      # PRECISO PASSAR O MOVES_DONE PARA A FRENTE...
+          print("Resultado encontrado!")
+          current_board.print_tabuleiro()
+          return
+
       _, possible_movements = current_board.movimentos_possiveis()
-      
-      if(movement_to_do != ""):
-        current_board.identificar_movimento(movement_to_do)
-        moves_done.append(movement_to_do)
-        visited.append(current_board.tabuleiro)
-      
-      print("----- DEOPIS DO MOV")
-      current_board.print_tabuleiro()
-            
-      #pra cada movimento, deve adicionar em uma fila
+
       for movement in possible_movements:
-        queue.append((current_board, movement, moves_done))
-              
+          new_board = deepcopy(current_board)
+          new_board.identificar_movimento(movement)
+
+          if new_board.tabuleiro not in visited:
+              visited.append(new_board.tabuleiro)
+              queue.append(new_board)
+        
   def final_state_verifier(self, board):
     counter = 1 
     in_order_flag = True
@@ -81,10 +82,8 @@ class QuebraCabeca:
         if not in_order_flag:
             break
         
-        if in_order_flag:
-           print("CABOBOBOBOBOO")
-
     return in_order_flag
 
 quebra_cabeca = QuebraCabeca(2)
+print(quebra_cabeca.isnt_solvable())
 quebra_cabeca.busca_em_largura()
