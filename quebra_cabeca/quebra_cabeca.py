@@ -43,26 +43,27 @@ class QuebraCabeca:
 
     
   def busca_em_largura(self):
-    queue = [self.tabuleiro]
+    queue = [(self.tabuleiro, [])]  
     visited = [self.tabuleiro.tabuleiro]
 
     while queue:
-      current_board = queue.pop(0)
+      current_board, movements_sequence = queue.pop(0)
 
       if self.final_state_verifier(current_board.tabuleiro):
-          print("Resultado encontrado!")
           current_board.print_tabuleiro()
+          print("Número de movimentos:", len(movements_sequence))
+          print("Movimentos realizados:", movements_sequence)
           return
 
       _, possible_movements = current_board.movimentos_possiveis()
 
       for movement in possible_movements:
           new_board = deepcopy(current_board)
-          new_board.identificar_movimento(movement)
+          new_board.mover(movement)
 
           if new_board.tabuleiro not in visited:
-              visited.append(new_board.tabuleiro)
-              queue.append(new_board)
+            visited.append(new_board.tabuleiro)
+            queue.append((new_board, movements_sequence + [movement]))
         
   def final_state_verifier(self, board):
     counter = 1 
@@ -85,5 +86,6 @@ class QuebraCabeca:
     return in_order_flag
 
 quebra_cabeca = QuebraCabeca(2)
+quebra_cabeca.tabuleiro.print_tabuleiro()
 print(quebra_cabeca.isnt_solvable())
 quebra_cabeca.busca_em_largura()

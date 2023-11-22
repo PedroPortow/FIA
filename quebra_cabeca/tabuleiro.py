@@ -47,7 +47,7 @@ class Tabuleiro:
             if self.tabuleiro[i][j] == 0:
               return i, j
             
-  def identificar_movimento(self, movimento):
+  def mover(self, movimento):
     if(movimento == "cima"):
       self.mover_cima()
     if(movimento == "baixo"):
