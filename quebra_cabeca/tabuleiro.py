@@ -10,12 +10,10 @@ import random
 
 
 class Tabuleiro:
-  def __init__(self, lado, random = True, custom_state = []):
+  def __init__(self, lado, random = True):
     self.lado = lado
-    if(random and custom_state == []):
+    if(random):
       self.incializa_tabuleiro_random()
-    elif(custom_state):
-       self.inicializa_tabuleiro_custom(custom_state)
     else: 
       self.inicializa_tabuleiro()
     self.movimentos = {'cima': self.mover_cima, 'baixo': self.mover_baixo, 'direita': self.mover_direita, 'esquerda': self.mover_esquerda}
@@ -26,12 +24,6 @@ class Tabuleiro:
     self.x = self.lado - 1
     self.y = self.lado - 1
 
-  def inicializa_tabuleiro_custom(self, custom_state):
-    self.tabuleiro = custom_state
-    player_position = self.get_player_position() #pega posição do player e seta no self.x e self.y
-    self.y = player_position[0]
-    self.x = player_position[1]
-    
   def incializa_tabuleiro_random(self):
     numbers = list(range(0, self.lado * self.lado)) # gerando os numeros
     random.shuffle(numbers) #numeros na ordem aleatoria
