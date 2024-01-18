@@ -8,7 +8,6 @@ import random
 #    Y = ALTURA
 #    X = HORIZONTAL
 
-
 class Tabuleiro:
   def __init__(self, lado, random = True):
     self.lado = lado
@@ -40,14 +39,9 @@ class Tabuleiro:
               return i, j
             
   def mover(self, movimento):
-    if(movimento == "cima"):
-      self.mover_cima()
-    if(movimento == "baixo"):
-      self.mover_baixo()
-    if(movimento == "esquerda"):
-      self.mover_esquerda()
-    if(movimento == "direita"):
-      self.mover_direita()
+    if movimento in self.movimentos:
+        return self.movimentos[movimento]()
+    return False
 
   def troca(self, novo_x, novo_y):
     aux = self.tabuleiro[novo_y][novo_x] # pegando o elemento na posição

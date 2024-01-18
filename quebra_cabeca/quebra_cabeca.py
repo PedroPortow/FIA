@@ -1,7 +1,7 @@
 from tabuleiro import Tabuleiro
 from copy import deepcopy
+import heapq
 import sys
-
 # Algoritmos necessários:
 
 # Busca em Largura
@@ -145,14 +145,75 @@ class QuebraCabeca:
     # É completa, pois vai aumentando o limite até achar a solução (e também tem a verificação para não formar ciclos infitos)
     # Não é otima, pois ela encontra a primeira a solução. Mas não necessariamente, essa primeira solução vai ser a com
     # menor quantidade de movimentos. E além disso, ela explora alguns caminhos repetidamente
-    
     max_integer = sys.maxsize
     for limit in range(1, max_integer):
       print("Limite: ", limit)
       result = self.busca_em_profundidade_limitada(limit)
       if result:
           return result
-        
+      
+
+  def busca_com_informacao(self):
+    # Expandir nó "mais desejável" que ainda não foi expandido
+    # Função de avaliação do nó => heurística
+    # A* = Evitar expandir caminhos caros (custo pra chegar em n)
+    # f(n) = g(n) + h(n)
+    # g(n) => custo pra alcançar n (custo até chegar aqui no n)
+    # h(n) => custo estimado de n até o objetivo (usando heurística)
+    # f(n) => custo total estimado do caminho através de n até o objetivo
+    # A cada nó verificar o custo de f e pegar o menor (QUE AINDA NÃO TENHA SIDO EXPANDIDO!)
+    # Mesmo chegando no objetivo, tem que continuar expandindo os nós e pegar o com menor custo de f
+
+    #heapq 
+    # f(n)
+    heuristic = self.numbers_out_of_place(self.tabuleiro.tabuleiro)
+    print(heuristic)
+              #f(n)         #tabuleiro  #g(n) #h(n)    #lista de movimentos feitos pra chegar até aqui
+    queue = [(heuristic ,self.tabuleiro, 0, heuristic, [])]
+    heapq.heapify(queue) # lista de prioridade
+    visited = [self.tabuleiro.tabuleiro]
+
+    while queue:
+      current_f, current_board, current_g, current_h, path = heapq.heappop(queue)
+
+      # if self.final_state_verifier(current_board.tabuleiro):
+      #   print("glória jesus amém chegou no resutlado")
+      #   current_board.print_tabuleiro()
+
+      _, possible_movements = current_board.movimentos_possiveis()
+
+      print(current_board)
+      print(current_g)
+      print(current_f)
+      print(current_h)
+      print(path)
+      print(possible_movements)
+
+      for movement in possible_movements:
+        new_board = deepcopy(current_board)
+        new_board.mover(movement)
+        new_board.print_tabuleiro()
+      
+        if new_board.tabuleiro not in visited:
+          visited.append(new_board.tabuleiro)
+          new_g_cost = current_g + 1
+          new_h_cost = self.numbers_out_of_place(new_board.tabuleiro)
+          new_f_cost = new_g_cost + new_h_cost
+          heapq.heappush(queue, (new_f_cost, new_board, new_g_cost, new_f_cost, path.append(movement)))
+   
+  def numbers_out_of_place(self, tabuleiro):
+    wrong_pos_numbers = 0
+    counter = 1
+    for i in range(self.lado):
+        for j in range(self.lado):
+            if counter == self.last_position and tabuleiro[i][j] != 0: 
+                wrong_pos_numbers += 1
+                break
+            if tabuleiro[i][j] != counter:
+                wrong_pos_numbers += 1
+            counter += 1
+    return wrong_pos_numbers
+  
   def final_state_verifier(self, board):
     counter = 1 
     in_order_flag = True
@@ -176,4 +237,6 @@ class QuebraCabeca:
 quebra_cabeca = QuebraCabeca(3)
 quebra_cabeca.tabuleiro.print_tabuleiro()
 print("Não dá pra resolver :(" if quebra_cabeca.isnt_solvable() else "Dá pra resolver!")
-quebra_cabeca.busca_aprofundamento_iterativo()
+# quebra_cabeca.busca_em_largura()
+quebra_cabeca.busca_com_informacao()
+# quebra_cabeca.tabuleiro.print_tabuleiro()
