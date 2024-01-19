@@ -1,6 +1,7 @@
 from tabuleiro import Tabuleiro
 from copy import deepcopy
 import heapq
+import itertools
 import sys
 # Algoritmos necessários:
 
@@ -166,40 +167,48 @@ class QuebraCabeca:
 
     #heapq 
     # f(n)
+
+    counter = itertools.count()  # Contador para desempate
     heuristic = self.numbers_out_of_place(self.tabuleiro.tabuleiro)
-    print(heuristic)
-              #f(n)         #tabuleiro  #g(n) #h(n)    #lista de movimentos feitos pra chegar até aqui
-    queue = [(heuristic ,self.tabuleiro, 0, heuristic, [])]
+    # print(heuristic)
+              #f(n)                       #tabuleiro  #g(n)     #lista de movimentos feitos pra chegar até aqui
+    queue = [(heuristic, next(counter), self.tabuleiro, 0, [])]
     heapq.heapify(queue) # lista de prioridade
-    visited = [self.tabuleiro.tabuleiro]
+    visited = set()
+    visited.add(tuple(map(tuple, self.tabuleiro.tabuleiro)))
 
     while queue:
-      current_f, current_board, current_g, current_h, path = heapq.heappop(queue)
+      current_f, _, current_board, current_g, path = heapq.heappop(queue)
 
-      # if self.final_state_verifier(current_board.tabuleiro):
-      #   print("glória jesus amém chegou no resutlado")
-      #   current_board.print_tabuleiro()
+      if self.final_state_verifier(current_board.tabuleiro):
+        print("glória jesus amém chegou no resutlado")
+        print("Número de movimentos:", len(path))
+        print("Movimentos:", path)
+        current_board.print_tabuleiro()
+        return
 
       _, possible_movements = current_board.movimentos_possiveis()
 
-      print(current_board)
-      print(current_g)
-      print(current_f)
-      print(current_h)
-      print(path)
-      print(possible_movements)
+      print("-------")
+      current_board.print_tabuleiro()
+      print("-------")
+      # print(current_g)
+      # print(current_f)
+      # print(path)
+      # print(possible_movements)
 
       for movement in possible_movements:
         new_board = deepcopy(current_board)
         new_board.mover(movement)
-        new_board.print_tabuleiro()
+        new_board_state = tuple(map(tuple, new_board.tabuleiro))
       
         if new_board.tabuleiro not in visited:
-          visited.append(new_board.tabuleiro)
+          visited.add(new_board_state)
           new_g_cost = current_g + 1
           new_h_cost = self.numbers_out_of_place(new_board.tabuleiro)
           new_f_cost = new_g_cost + new_h_cost
-          heapq.heappush(queue, (new_f_cost, new_board, new_g_cost, new_f_cost, path.append(movement)))
+          heapq.heappush(queue, (new_f_cost, next(counter), new_board, new_g_cost, path + [movement]))
+        else: print("JÁ VISITADO!!!!@")
    
   def numbers_out_of_place(self, tabuleiro):
     wrong_pos_numbers = 0
@@ -237,6 +246,6 @@ class QuebraCabeca:
 quebra_cabeca = QuebraCabeca(3)
 quebra_cabeca.tabuleiro.print_tabuleiro()
 print("Não dá pra resolver :(" if quebra_cabeca.isnt_solvable() else "Dá pra resolver!")
-# quebra_cabeca.busca_em_largura()
-quebra_cabeca.busca_com_informacao()
+# if not quebra_cabeca.isnt_solvable(): quebra_cabeca.busca_em_largura()
+if not quebra_cabeca.isnt_solvable(): quebra_cabeca.busca_com_informacao()
 # quebra_cabeca.tabuleiro.print_tabuleiro()
