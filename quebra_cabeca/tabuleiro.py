@@ -12,10 +12,33 @@ class Tabuleiro:
   def __init__(self, lado, random = True):
     self.lado = lado
     if(random):
-      self.incializa_tabuleiro_random()
+      self.incializa_tabuleiro_random_solvable()
     else: 
       self.inicializa_tabuleiro()
     self.movimentos = {'cima': self.mover_cima, 'baixo': self.mover_baixo, 'direita': self.mover_direita, 'esquerda': self.mover_esquerda}
+
+  def is_solvable(self):
+    # Créditos: https://www.geeksforgeeks.org/check-instance-8-puzzle-solvable/
+    
+    flatten_board = [tile for row in self.tabuleiro for tile in row]
+
+    inversion_count = 0
+    for i in range(len(flatten_board)):
+        for j in range(i + 1, len(flatten_board)):
+            if flatten_board[i] > flatten_board[j] and flatten_board[i] != 0 and flatten_board[j] != 0:
+                inversion_count += 1
+
+    blank_row = self.get_player_position()[0]
+    row_from_bottom = self.lado - blank_row
+
+    if self.lado % 2 == 0:  
+        if ((row_from_bottom % 2 == 0) and (inversion_count % 2 != 0)) or \
+            ((row_from_bottom % 2 != 0) and (inversion_count % 2 == 0)):
+            return True
+        else:
+            return False
+    else:
+        return inversion_count % 2 == 0
 
   def inicializa_tabuleiro(self):
     self.tabuleiro = [[i + j * self.lado for i in range(1, self.lado + 1)] for j in range(self.lado)]
@@ -23,14 +46,18 @@ class Tabuleiro:
     self.x = self.lado - 1
     self.y = self.lado - 1
 
-  def incializa_tabuleiro_random(self):
-    numbers = list(range(0, self.lado * self.lado)) # gerando os numeros
-    random.shuffle(numbers) #numeros na ordem aleatoria
-    self.tabuleiro = [[numbers.pop(0) if numbers else 0 for _ in range(self.lado)] for _ in range(self.lado)] #botando os elementos na matriz
-    
-    player_position = self.get_player_position() #pega posição do player e seta no self.x e self.y
-    self.y = player_position[0]
-    self.x = player_position[1]
+  def incializa_tabuleiro_random_solvable(self):
+    solvable = False
+    while not solvable:
+      numbers = list(range(0, self.lado * self.lado)) # gerando os numeros
+      random.shuffle(numbers) #numeros na ordem aleatoria
+      self.tabuleiro = [[numbers.pop(0) if numbers else 0 for _ in range(self.lado)] for _ in range(self.lado)] #botando os elementos na matriz
+      
+      player_position = self.get_player_position() #pega posição do player e seta no self.x e self.y
+      self.y = player_position[0]
+      self.x = player_position[1]
+      
+      solvable = self.is_solvable()
     
   def get_player_position(self):
      for i in range(self.lado):

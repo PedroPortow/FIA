@@ -3,3 +3,7 @@ https://www.ic.unicamp.br/~ffaria/ia1s2015/class03/class03b-Buscaseminformacao_e
 Inteligência Artificial - Uma Abordagem Moderna - (Stuart J. Russell; Peter Norvig, 2019)
 
 https://www.youtube.com/watch?v=xlVX7dXLS64&ab_channel=Reducible
+
+https://www.freecodecamp.org/news/breadth-first-search-a-bfs-graph-traversal-guide-with-3-leetcodeexamples/
+
+https://www.codecademy.com/resources/docs/ai/search-algorithms/a-star-search
