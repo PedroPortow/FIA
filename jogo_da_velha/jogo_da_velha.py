@@ -16,10 +16,10 @@ class TicTacToe:
     self.max_depth = 50
     self.turn = None
     
-  def make_play(self, pos):
+  def make_play(self, pos, player):
     if self.is_valid_play(pos):
-      self.board = self.board[:pos] + self.player + self.board[pos+1:]
-      self.switch_player()  
+      self.board = self.board[:pos] + player + self.board[pos+1:]
+      print("movimentouu feito")
     else:
       print("invalid play your dumb af")
   
@@ -45,7 +45,10 @@ class TicTacToe:
       return None # ninguem ganhou nem emaptou
   
   def switch_player(self):
-    self.turn = "X" if self.turn == "O" else "X"
+    if self.turn == "X":
+      self.turn = 'O'
+    elif self.turn == "O":
+      self. turn = "X"
     
   def is_valid_play(self, pos):
     if pos < 0 or pos > 8:
@@ -75,14 +78,27 @@ class TicTacToe:
   def player_turn(self):
     choosed_play = None
 
-    while choosed_play not in self.possible_plays():
-      choosed_play = int(input("Sua vez, escolha um numero de 0 a 8: "))
-    self.make_play(choosed_play)
+    print(self.possible_plays())
+    choosed_play = int(input("Sua vez, escolha um numero de 0 a 8: "))
+    self.make_play(choosed_play, self.player)
     
-  def ai_player_turn(self):
+  def ai_player_turn(self, max_depth):
     print("Vez do robozão")
     # minmax....
+
+    best_score = -float('inf')
+    best_play = None
     
+    for play in self.possible_plays(): 
+      self.board = self.board[:play] + self.ai_player + self.board[play+1:]
+      score = self.minmax(0, False, max_depth)
+      self.board = self.board[:play] + ' ' + self.board[play+1:]
+
+      if score > best_score:
+        best_score = score
+        best_play = play 
+    self.make_play(best_play, self.ai_player)
+
 
   def minmax(self, depth, is_maximizing, max_depth):
     if self.verify_win() == self.player: # eu ganhei, -1 pra ai
@@ -97,7 +113,7 @@ class TicTacToe:
 
       for play in self.possible_plays(): 
         self.board = self.board[:play] + self.ai_player + self.board[play+1:]
-        score = self.minimax(depth + 1, False, max_depth) # +1 de profundidade, agora temq ue minimizar
+        score = self.minmax(depth + 1, False, max_depth) # +1 de profundidade, agora temq ue minimizar
         self.board = self.board[:play] + ' ' + self.board[play+1:] # refazendo o movimento pra não ter q ficar criando cópia de tabuleiro...
         max_score = max(score, max_score)
       return max_score
@@ -106,7 +122,7 @@ class TicTacToe:
 
       for play in self.possible_plays(): 
         self.board = self.board[:play] + self.player + self.board[play+1:]
-        score = self.minimax(depth + 1, True, max_depth) # agora maximizando (eu jogando, como se fosse)
+        score = self.minmax(depth + 1, True, max_depth) # agora maximizando (eu jogando, como se fosse)
         self.board = self.board[:play] + ' ' + self.board[play+1:] # refazendo o movimento pra não ter q ficar criando cópia de tabuleiro...
         min_score = min(score, min_score)
       return min_score
@@ -123,11 +139,19 @@ class TicTacToe:
     self.turn = self.decide_inicial_player()
     print(f'Jogador {self.turn} que começa')
 
-    while self.verify_win() != None:
+    while True:
+      self.print_board()
+
+      if self.verify_win():
+        print("cabo")
+        break
+      print(f'vez do {self.turn}')
       if self.turn == self.player:
         self.player_turn()
+        self.switch_player()
       else:
-        self.ai_player_turn()
+        self.ai_player_turn(25)
+        self.switch_player()
 
 jogo = TicTacToe()
 jogo.game_loop()
