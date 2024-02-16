@@ -7,6 +7,7 @@ import random
 # " "|" "|" "
 
 # créditos método de verify_win = https://www.reddit.com/r/learnpython/comments/16g1jlc/tictactoe_check_win/
+# https://en.wikipedia.org/wiki/alfa%E2%80%93beta_pruning
 
 class TicTacToe:
   def __init__(self):
@@ -77,9 +78,17 @@ class TicTacToe:
   
   def player_turn(self):
     choosed_play = None
+    valid_plays = self.possible_plays()
 
-    print(self.possible_plays())
-    choosed_play = int(input("Sua vez, escolha um numero de 0 a 8: "))
+    print(valid_plays)
+    while choosed_play not in valid_plays:
+      try:
+          choosed_play = int(input("Sua vez, escolha um número de 0 a 8: "))
+          if choosed_play not in valid_plays:
+              print("DE 0 A 8")
+      except ValueError:
+          print("Inserir somente NUMEROS de 0 a 8")
+
     self.make_play(choosed_play, self.player)
     
   def ai_player_turn(self, max_depth):
@@ -99,6 +108,41 @@ class TicTacToe:
         best_play = play 
     self.make_play(best_play, self.ai_player)
 
+  def minmax_alfa_beta(self, depth, is_maximizing, alfa, beta, max_depth):
+       
+  # # Poda Alfa: Se, durante a busca, o valor de beta de um nó minimizador se torna menor ou igual ao valor de alfa de algum de seus ancestrais, então esse nó e seus descendentes não precisam ser explorados, pois o maximizador já tem uma opção melhor.
+  # # ~Poda Beta: Se, durante a busca, o valor de alfa de um nó maximizador se torna maior ou igual ao valor de beta de algum de seus ancestrais, então esse nó e seus descendentes não precisam ser explorados, pois o minimizador já tem uma opção melhor.
+    if self.verify_win() == self.player: # eu ganhei, -1 pra ai
+      return -1
+    elif self.verify_win() == self.ai_player: #parabens robozao
+      return +1
+    elif self.verify_win() == "DRAW" or depth == max_depth: #aqui ou emaptou ou chegou na altura maxima
+      return 0 
+    
+    if is_maximizing:
+      max_score = -float('inf')
+
+      for play in self.possible_plays(): 
+        self.board = self.board[:play] + self.ai_player + self.board[play+1:]
+        score = self.minmax_alfa_beta(depth + 1, False, alfa, beta, max_depth) # agora minimizar, mandando o alfa e beta
+        self.board = self.board[:play] + ' ' + self.board[play+1:] # refazendo o movimento pra não ter q ficar criando cópia de tabuleiro...
+        max_score = max(score, max_score)
+        alfa = max(alfa, score) # maximizando o alfa
+        if beta <= alfa: # se já achou um beta men
+          break 
+      return max_score
+    else: 
+      min_score = float('inf')
+
+      for play in self.possible_plays(): 
+        self.board = self.board[:play] + self.player + self.board[play+1:]
+        score = self.minmax_alfa_beta(depth + 1, True, alfa, beta, max_depth) # agora maximizando (eu jogando, como se fosse)
+        self.board = self.board[:play] + ' ' + self.board[play+1:] # refazendo o movimento pra não ter q ficar criando cópia de tabuleiro...
+        min_score = min(score, min_score)
+        beta = min(beta, score)
+        if beta <= alfa:
+          break  
+      return min_score
 
   def minmax(self, depth, is_maximizing, max_depth):
     if self.verify_win() == self.player: # eu ganhei, -1 pra ai
@@ -126,6 +170,27 @@ class TicTacToe:
         self.board = self.board[:play] + ' ' + self.board[play+1:] # refazendo o movimento pra não ter q ficar criando cópia de tabuleiro...
         min_score = min(score, min_score)
       return min_score
+ 
+
+  def ai_player_turn_alfa_beta(self, max_depth):
+    print("Vez do robozão com poda alfa beta")
+    # minmax....
+
+    best_score = -float('inf')
+    best_play = None
+    alfa = float('-inf')
+    beta = float('inf')
+    
+    for play in self.possible_plays(): 
+      self.board = self.board[:play] + self.ai_player + self.board[play+1:]
+      score = self.minmax_alfa_beta(0, False, alfa, beta, max_depth)
+      self.board = self.board[:play] + ' ' + self.board[play+1:]
+
+      if score > best_score:
+        best_score = score
+        best_play = play
+        alfa = max(alfa, best_score)  #atualzia alfa, beta vai ser usado só dentro do minimax pq ele é pra minimizar
+    self.make_play(best_play, self.ai_player)
 
   def game_loop(self):
     print("== Jogo inciando ==");
@@ -139,6 +204,18 @@ class TicTacToe:
     self.turn = self.decide_inicial_player()
     print(f'Jogador {self.turn} que começa')
 
+    print("Modo de jogo da IA:")
+    print("1- minimax")
+    print("2- minimax com poda alfa-beta")
+    ia_mode = 0
+    while ia_mode not in [1, 2]:
+        try:
+            ia_mode = int(input("Escolha o modo (1 ou 2): "))
+            if ia_mode not in [1, 2]:
+                print("Escolhe entre 1 e 2")
+        except ValueError:
+            print("Tem q ser um numero 1 ou 2")
+
     while True:
       self.print_board()
 
@@ -150,8 +227,12 @@ class TicTacToe:
         self.player_turn()
         self.switch_player()
       else:
-        self.ai_player_turn(25)
-        self.switch_player()
+        if ia_mode == 1:
+          self.ai_player_turn(1000)
+          self.switch_player()
+        elif ia_mode == 2:
+          self.ai_player_turn_alfa_beta(1000)
+          self.switch_player()
 
 jogo = TicTacToe()
 jogo.game_loop()
