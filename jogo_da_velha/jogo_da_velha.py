@@ -82,6 +82,34 @@ class TicTacToe:
   def ai_player_turn(self):
     print("Vez do robozão")
     # minmax....
+    
+
+  def minmax(self, depth, is_maximizing, max_depth):
+    if self.verify_win() == self.player: # eu ganhei, -1 pra ai
+      return -1
+    elif self.verify_win() == self.ai_player: #parabens robozao
+      return +1
+    elif self.verify_win() == "DRAW" or depth == max_depth: #aqui ou emaptou ou chegou na altura maxima
+      return 0 
+    
+    if is_maximizing:
+      max_score = -float('inf')
+
+      for play in self.possible_plays(): 
+        self.board = self.board[:play] + self.ai_player + self.board[play+1:]
+        score = self.minimax(depth + 1, False, max_depth) # +1 de profundidade, agora temq ue minimizar
+        self.board = self.board[:play] + ' ' + self.board[play+1:] # refazendo o movimento pra não ter q ficar criando cópia de tabuleiro...
+        max_score = max(score, max_score)
+      return max_score
+    else: 
+      min_score = float('inf')
+
+      for play in self.possible_plays(): 
+        self.board = self.board[:play] + self.player + self.board[play+1:]
+        score = self.minimax(depth + 1, True, max_depth) # agora maximizando (eu jogando, como se fosse)
+        self.board = self.board[:play] + ' ' + self.board[play+1:] # refazendo o movimento pra não ter q ficar criando cópia de tabuleiro...
+        min_score = min(score, min_score)
+      return min_score
 
   def game_loop(self):
     print("== Jogo inciando ==");
