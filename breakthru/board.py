@@ -8,7 +8,7 @@ import sys
 # 2 N N N N N N N N N N N
 # 3 N P N N G G G N N P N
 # 4 N P N G N N N G N P N
-# 5 N P N G N G N G N P N
+# 5 N P N G N X N G N P N
 # 6 N P N G N N N G N P N
 # 7 N P N N G G G N N P N
 # 8 N N N N N N N N N N N
@@ -21,14 +21,22 @@ class Board:
   def __init__(self):
     self.board = self.initialize_board()
     self.player = None          
-    self.ai_player = None
-    self.turn = self.choose_first_player()  #
+    self.ai = None
+    self.turn = self.choose_first_player()  
+    self.choose_each_side()
+
+  def choose_each_side(self):
+    self.player = random.choice(['G', 'S'])
+    self.ai = 'G' if self.player == 'S' else 'S'
+    print(f"Player is '{self.player}', AI is '{self.ai}'")
 
   def choose_first_player(self):
-    return random.choice(['B', 'P'])
+    return random.choice(['G', 'S']);
 
+  def is_player_turn(self):
+    return self.turn == self.player
+    
   def initialize_board(self):
-    # Inicializa um tabuleiro 11x11 com None
     board = [[None for _ in range(11)] for _ in range(11)]
     
     center = 5  #
@@ -58,9 +66,6 @@ class Board:
 
     return board
   
-  def get_board(self):
-      return self.board
-
   def print_board(self):
       for row in self.board:
           print(' '.join(['-' if cell is None else cell for cell in row]))
