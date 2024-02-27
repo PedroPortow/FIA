@@ -35,6 +35,16 @@ class Board:
 
   def is_player_turn(self):
     return self.turn == self.player
+  
+  def is_valid_first_press(self, row, col):
+    if self.turn == "G" and (self.board[row][col] == "G" or self.board[row][col] == "X"):
+      return True
+    elif self.turn == "S" and (self.board[row][col] == "S"):
+      return True
+    
+    return False
+
+
     
   def initialize_board(self):
     board = [[None for _ in range(11)] for _ in range(11)]
@@ -45,7 +55,7 @@ class Board:
     for i in range(3, 8):
         for j in range(3, 8):
             if (i == 3 or i == 7) or (j == 3 or j == 7):
-                board[i][j] = 'G' # => X = ESCORTAS
+                board[i][j] = 'G' # => g = ESCORTAS
 
     # to-do: arrumar essa coisa feia
     for i in range(1, 2):  # Linha X com navios prateados

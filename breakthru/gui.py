@@ -53,8 +53,11 @@ class GUI(App):
             return (0.8, 0.8, 0.8, 1)
 
     def button_pressed(self, instance, row, col):
-        # IF !INVALID POSITION... clicou em uma posição nada ve 
-        if not self.first_button_pressed:
+        if not self.first_button_pressed: # PRIMEIRA BOTÃO PRESSIONADO
+            if not self.board.is_valid_first_press(row, col): # verificação de pos invalida
+                print("INVALID FIRST PRESS")
+                return 
+
             self.first_button_pressed = (row, col)
             self.update_button_colors()  
             return
@@ -63,6 +66,9 @@ class GUI(App):
             self.first_button_pressed = None
             self.update_button_colors()  # update as cores
             return
+
+        # TROCAR A POSIÇÃO!!!!!!!
+    
 
 
         print(f"BUTTON ROW => {row}  col => {col} selected")
