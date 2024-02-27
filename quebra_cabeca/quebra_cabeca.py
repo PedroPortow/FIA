@@ -273,7 +273,7 @@ class QuebraCabeca:
         
     return in_order_flag
 
-quebra_cabeca = QuebraCabeca(3)
+quebra_cabeca = QuebraCabeca(2)
 quebra_cabeca.tabuleiro.print_tabuleiro()
 quebra_cabeca.busca_em_largura()
 quebra_cabeca.busca_em_profundidade()
