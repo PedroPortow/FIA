@@ -1,6 +1,5 @@
 import random
 import sys
-import numpy as np
 
 # TABULEIRO 
 #   0 1 2 3 4 5 6
@@ -22,10 +21,13 @@ import numpy as np
 class Board:
   def __init__(self):
     self.board = self.initialize_board()
-    self.player = None          
-    self.ai = None
-    self.turn = self.choose_first_player()  
-    self.choose_each_side()
+    self.player = 'G'      
+    # self.player = None          
+    self.ai = 'S'
+    # self.ai = None
+    self.turn = 'G'
+    # self.turn = self.choose_first_player()  
+    # self.choose_each_side()
 
   def choose_each_side(self):
     self.player = random.choice(['G', 'S'])
@@ -40,6 +42,9 @@ class Board:
 
   def is_player_turn(self):
     return self.turn == self.player
+  
+  def is_ai_turn(self):
+    return self.turn == self.ai
   
   def is_valid_first_press(self, row, col):
     if self.turn == "G" and (self.board[row][col] == "G" or self.board[row][col] == "X"):
@@ -73,21 +78,27 @@ class Board:
   
   def is_valid_play(self, start_row, start_col, play_row, play_col):
     target_play = self.board[play_row][play_col]
+    row_diff = abs(play_row - start_row)
+    col_diff = abs(play_col - start_col)
 
-    if target_play is not None: # SE TIVER ALGUMA PEÇA ALI, SE NÃO CAIU NO TRUE DIRETO
-      if abs(play_row - start_row) == abs(play_col - start_col): # verificando se é um movimento diagonal
-        # tem que retornar true caso a peça seja do adversário, aí é captura
-        if self.is_gold_turn() and target_play == "S": # SE É A VEZ DO GOLD E NA POSIÇÃO TEM UM S ENTÃO É CAPTURA
-          return True
-        elif self.is_silver_turn() and target_play in self.get_gold_player_pieces_symb(): # SE É A VEZ DO SILVER E FOR DE CAPTURA
-              return True
-        else: # pra não dar pra capturar a peça do mesmo time :)
-            return False  
-      else:
-          return False # Movimento para célula com peça adversária que não é diagonal
+    if row_diff > 1 or col_diff > 1: # Movimento 1x1 limitado
+        return False
 
-    return True
-  
+    is_diagonal_play = row_diff == 1 and col_diff == 1 # verificando se é na diagonal
+
+    if target_play is None and not is_diagonal_play: # se n tem nada no taret, e não é na diagonal pode dale
+        return True
+
+    if is_diagonal_play:    # aqui tem que verificar se é uma captura
+        if self.is_gold_turn() and target_play == "S":  # gold captura S
+            return True
+        elif self.is_silver_turn() and target_play in self.get_gold_player_pieces_symb(): 
+            return True
+        return False  # pra não permitir comer a propria peça na diagonal
+
+    # aqui vai cair casos como, movimentar pra um lugar ocupado sem poder comer tipo na reta
+    return False
+
   def is_gold_turn(self):
     return self.turn == "G"
 
@@ -121,24 +132,26 @@ class Board:
       return True
 
     return False
-        
+  
+  # def game_loop(self):
+  #   print("== Jogo inciando ==");
+  #   print("--- BOARD ---")
+  #   self.print_board()
+  #   print("--------------")
+
+  #   while True:
+  #     if self.is_player_turn():
+  #       self.player_turn()
+  #       self.switch_player_turn()
+
+  def switch_player(self):
+    if self.turn == 'G':
+      self.turn = 'S'
+    elif self.turn == 'S':
+      self. turn = 'G'
+
   def print_board(self):
       for row in self.board:
           print(' '.join(['-' if cell is None else cell for cell in row]))
 
-    
-
-  def game_loop(self):
-    print("== Jogo inciando ==");
-    print("--- BOARD ---")
-    self.print_board()
-    print("--------------")
-
-    # while True:
-       
-   
-
 board = Board()
-# board.game_loop()
-# board.verify_win()
-board.print_board()

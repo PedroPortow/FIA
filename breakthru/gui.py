@@ -32,7 +32,7 @@ class GUI(App):
         main_layout.add_widget(board_layout)
 
         self.turn_label = Label(text='', font_size=24, size_hint_x=None, width=200)
-        self.set_turn_label()
+        self.start_game()
         main_layout.add_widget(self.turn_label)
         
         return main_layout
@@ -55,6 +55,9 @@ class GUI(App):
     def button_pressed(self, instance, row, col):
         print(f"BUTTON ROW => {row}  col => {col} selected")
 
+        if not self.board.is_player_turn(): #não é vez do player
+            print("Não é sua vez!")
+            return
 
         if not self.first_button_pressed: # PRIMEIRA BOTÃO PRESSIONADO
             if not self.board.is_valid_first_press(row, col): # verificação de pos invalida
@@ -70,14 +73,22 @@ class GUI(App):
             self.update_button_colors()  # update as cores
             return
         
-
-
-        # AQUI AINDA TEM QUE VERIFICAR SE A dJOGADA É VALIDA, PORQUE PODE SER INVALIDA NESSA SITUAÇÃO AQUI.
-        # SÓ PODE CAPTURAR NA DIAGONAL, E SE TENTAR MOVER PRA UM (ROW,COL)
-        # TROCAR A POSIÇÃO!!!!!!!
-        if self.board.is_valid_play(self.first_button_pressed[0], self.first_button_pressed[1], row, col):
+        if self.board.is_valid_play(self.first_button_pressed[0], self.first_button_pressed[1], row, col): # aqui tem que adicionar limitação de 1 casa por vez
             self.board.make_play(self.first_button_pressed[0], self.first_button_pressed[1], row, col)
+            self.first_button_pressed = None
+            self.update_ui()
+            # self.board.switch_player()
 
+    def start_game(self):
+        self.set_turn_label()
+        if self.board.is_ai_turn():  
+            print("ai")
+
+    def update_ui(self):
+        for (row, col), button in self.button_positions.items():
+            cell = self.board.board[row][col]
+            button.text = cell if cell else '-'
+            button.background_color = self.get_cell_color(cell, row, col)
 
     def update_button_colors(self):
         for (row, col), button in self.button_positions.items():
