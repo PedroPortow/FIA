@@ -13,12 +13,29 @@ class GUI(App):
         self.button_positions = {}
         self.board = Board()
         self.turn_label = None  
+        self.mode = None
 
     def build(self):
-        Window.size = (800, 600) 
-        
-        main_layout = BoxLayout(orientation='horizontal', padding=10, spacing=10)
+        Window.size = (800, 600)
+        self.title = 'Breakthru'
+        return self.build_menu()  
+    
+    def build_menu(self):
+        menu_layout = BoxLayout(orientation='vertical', padding=10, spacing=10)
 
+        btn_play_vs_ai = Button(text='Jogar contra IA', size_hint=(None, None), size=(200, 50))
+        btn_play_vs_ai.bind(on_press=self.set_mode_play_vs_ai)
+
+        btn_ai_vs_ai = Button(text='IA vs IA', size_hint=(None, None), size=(200, 50))
+        btn_ai_vs_ai.bind(on_press=self.set_mode_ai_vs_ai)
+
+        menu_layout.add_widget(btn_play_vs_ai)
+        menu_layout.add_widget(btn_ai_vs_ai)
+
+        return menu_layout
+    
+    def build_game(self):
+        main_layout = BoxLayout(orientation='horizontal', padding=10, spacing=10)
         board_layout = GridLayout(cols=7, padding=10, spacing=10)
 
         board_data = self.board.board
@@ -30,13 +47,24 @@ class GUI(App):
                 board_layout.add_widget(button)
 
         main_layout.add_widget(board_layout)
-
         self.turn_label = Label(text='', font_size=24, size_hint_x=None, width=200)
-        self.start_game()
         main_layout.add_widget(self.turn_label)
-        
+        self.start_game()  
         return main_layout
+
+    def set_mode_play_vs_ai(self, instance):
+        self.mode = 'player_vs_ai'
+        self.start_game_layout()  #
+
+    def set_mode_ai_vs_ai(self, instance):
+        self.mode = 'ai_vs_ai'
+        self.start_game_layout()  
+
+    def start_game_layout(self):
+        self.root.clear_widgets()
+        self.root.add_widget(self.build_game())
     
+        
     def set_turn_label(self):
         self.turn_label.text = "Sua vez!" if self.board.is_player_turn else "Vez do robozão :("
 
