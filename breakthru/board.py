@@ -108,9 +108,6 @@ class Board:
   def make_play(self, start_row, start_col, play_row, play_col):
     self.board[play_row][play_col] = self.board[start_row][start_col]
     self.board[start_row][start_col] = None  
-
-    self.verify_win()
-
     
   def verify_win(self):
    # WIN DO GOLD PLAYER 
@@ -118,7 +115,7 @@ class Board:
       for j in range(7):
         if self.board[i][j] == 'X' or self.board[j][i] == 'X':
             print("Gold ganhou! Chegou nos outermost squares")
-            return True
+            return 'G'
     
     # WIN DO SILVER (N TEM FLAGSHIP)
     flagship_found = False
@@ -129,26 +126,23 @@ class Board:
 
     if not flagship_found:
       print("Silver wins! (Flagship was captured)")
-      return True
+      return 'S'
 
-    return False
+    return None
   
-  # def game_loop(self):
-  #   print("== Jogo inciando ==");
-  #   print("--- BOARD ---")
-  #   self.print_board()
-  #   print("--------------")
+  def ai_player_turn(self, max_depth):
+    print("Vez do computter")
 
-  #   while True:
-  #     if self.is_player_turn():
-  #       self.player_turn()
-  #       self.switch_player_turn()
+  
+  def minimax(self, depth, is_maximizing, alpha, beta, max_depth):
+    pass
+
 
   def switch_player(self):
     if self.turn == 'G':
       self.turn = 'S'
     elif self.turn == 'S':
-      self. turn = 'G'
+      self.turn = 'G'
 
   def print_board(self):
       for row in self.board:

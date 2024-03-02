@@ -77,7 +77,7 @@ class GUI(App):
             self.board.make_play(self.first_button_pressed[0], self.first_button_pressed[1], row, col)
             self.first_button_pressed = None
             self.update_ui()
-            # self.board.switch_player()
+            self.board.switch_player()
 
     def start_game(self):
         self.set_turn_label()
