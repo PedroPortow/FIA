@@ -19,7 +19,7 @@ class GUI(App):
         
         main_layout = BoxLayout(orientation='horizontal', padding=10, spacing=10)
 
-        board_layout = GridLayout(cols=11, padding=10, spacing=10)
+        board_layout = GridLayout(cols=7, padding=10, spacing=10)
 
         board_data = self.board.board
         for row_index, row in enumerate(board_data):
@@ -53,6 +53,9 @@ class GUI(App):
             return (0.8, 0.8, 0.8, 1)
 
     def button_pressed(self, instance, row, col):
+        print(f"BUTTON ROW => {row}  col => {col} selected")
+
+
         if not self.first_button_pressed: # PRIMEIRA BOTÃO PRESSIONADO
             if not self.board.is_valid_first_press(row, col): # verificação de pos invalida
                 print("INVALID FIRST PRESS")
@@ -66,12 +69,15 @@ class GUI(App):
             self.first_button_pressed = None
             self.update_button_colors()  # update as cores
             return
+        
 
+
+        # AQUI AINDA TEM QUE VERIFICAR SE A dJOGADA É VALIDA, PORQUE PODE SER INVALIDA NESSA SITUAÇÃO AQUI.
+        # SÓ PODE CAPTURAR NA DIAGONAL, E SE TENTAR MOVER PRA UM (ROW,COL)
         # TROCAR A POSIÇÃO!!!!!!!
-    
+        if self.board.is_valid_play(self.first_button_pressed[0], self.first_button_pressed[1], row, col):
+            self.board.make_play(self.first_button_pressed[0], self.first_button_pressed[1], row, col)
 
-
-        print(f"BUTTON ROW => {row}  col => {col} selected")
 
     def update_button_colors(self):
         for (row, col), button in self.button_positions.items():
