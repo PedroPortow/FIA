@@ -1,12 +1,4 @@
 import random
-import sys
-
-# TABULEIRO 
-#   0 1 2 3 4 5 6
-# 0 
-
-
-
 # B => BOT (AI)
 # P => PLAYER
 
@@ -21,18 +13,26 @@ import sys
 class Board:
   def __init__(self):
     self.board = self.initialize_board()
-    self.player = 'G'      
-    # self.player = None          
-    self.ai = 'S'
-    # self.ai = None
+
+    # QUANDO FOR PLAYER VS IA, ESSE É O PLAYER
+    self.player_1 = 'G'      
+    # self.player_1 = None          
+
+    # SEMPRE VAI SER IA
+    self.player_2 = 'S'
+    # self.player_2 = None
+    
     self.turn = 'G'
-    # self.turn = self.choose_first_player()  
+    self.mode = None
+
+    # TODO: tirar essas chamadas do construtor  
+    # self.turn = self.choose_first_player()
     # self.choose_each_side()
 
   def choose_each_side(self):
-    self.player = random.choice(['G', 'S'])
-    self.ai = 'G' if self.player == 'S' else 'S'
-    print(f"Player is '{self.player}', AI is '{self.ai}'")
+    self.player_1 = random.choice(['G', 'S'])
+    self.player_2 = 'G' if self.player_1 == 'S' else 'S'
+    print(f"Player 1 is '{self.player_1}', AI is '{self.player_2}'")
 
   def get_gold_player_pieces_symb(self):
      return ('G', 'X')
@@ -41,10 +41,10 @@ class Board:
     return random.choice(['G', 'S']);
 
   def is_player_turn(self):
-    return self.turn == self.player
+    return self.turn == self.player_1
   
   def is_ai_turn(self):
-    return self.turn == self.ai
+    return self.turn == self.player_2
   
   def is_valid_first_press(self, row, col):
     if self.turn == "G" and (self.board[row][col] == "G" or self.board[row][col] == "X"):
