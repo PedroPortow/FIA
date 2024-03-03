@@ -124,11 +124,23 @@ class GUI(App):
             self.first_button_pressed = None
             self.update_ui()
             self.board.switch_player()
+            self.board.player_2_turn()            
 
     def start_mode_player_vs_ai(self):
         self.set_turn_label()
-#         if self.board.is_ai_turn():  
-#             self.print_status_label("ai")
+        print("apsodkaspodkpas")
+        if self.board.is_ai_turn():  
+            self.print_status_label("ai")
+            self.board.player_2_turn()
+            self.board.switch_player()
+
+        # while True:
+        #     if self.board.is_ai_turn():  
+        #         self.print_status_label("ai")
+        #         self.board.player_2_turn()
+        #     elif self.board.is_player_turn():
+        #         print("VEZ DO PLAYER")
+    
 
     def start_mode_ai_vs_ai(self):
         self.set_turn_label()
@@ -136,6 +148,7 @@ class GUI(App):
 #             self.print_status_label("ai")
 # # 
     def update_ui(self):
+        self.set_turn_label()
         for (row, col), button in self.button_positions.items():
             cell = self.board.board[row][col]
             button.text = cell if cell else '-'

@@ -15,19 +15,13 @@ class Board:
     self.board = self.initialize_board()
 
     # QUANDO FOR PLAYER VS IA, ESSE É O PLAYER
-    self.player_1 = 'G'      
-    # self.player_1 = None          
+    self.player_1 = 'G'    
 
     # SEMPRE VAI SER IA
     self.player_2 = 'S'
-    # self.player_2 = None
-    
+
     self.turn = 'G'
     self.mode = None
-
-    # TODO: tirar essas chamadas do construtor  
-    # self.turn = self.choose_first_player()
-    # self.choose_each_side()
 
   def choose_each_side(self):
     self.player_1 = random.choice(['G', 'S'])
@@ -130,13 +124,84 @@ class Board:
 
     return None
   
-  def ai_player_turn(self, max_depth):
-    print("Vez do computter")
+  def player_2_turn(self):
+    self.nodes_evaluated = 0
 
+    best_score = -float('inf')
+    best_play = None
+
+    alpha = float('-inf')
+    beta = float('inf')
+
+    print(self.silver_player_possible_plays())
+
+    if self.player_2 == "S":
+      for play in self.silver_player_possible_plays(): # JOGADAS POSSIVEIS
+          self.make_play(*play[0], *play[1])
+
+          score = self.minimax(0, False, alpha, beta, 3)
+
+          print(*play[0])
+          print(*play[1])
+          self.undo_play(*play[1], *play[0]) #desfazendo a jogada
+
+          if score > best_score:
+              best_score = score
+              best_play = play
+
+      if best_play:
+          self.make_play(*best_play[0], *best_play[1])
+          self.switch_player()  
+          
+    elif self.player_2 == "G":
+      pass
+
+  def gold_player_possible_plays(self):
+    possible_plays = []
+    directions = [(-1, -1), (-1, 1), (1, -1), (1, 1), (0, -1), (0, 1), (-1, 0), (1, 0)]  #
+
+    for row in range(len(self.board)):
+        for col in range(len(self.board[row])):
+            if self.board[row][col] in self.get_gold_player_pieces_symb():  # G e
+                for direction in directions:
+                    target_row, target_col = row + direction[0], col + direction[1]
+
+                    if 0 <= target_row < len(self.board) and 0 <= target_col < len(self.board[0]):  # dentro do tabuleiro
+                        target_piece = self.board[target_row][target_col]
+
+                        if abs(direction[0]) == 1 and abs(direction[1]) == 1 and target_piece == 'S':  # diagonal precisa ser captura
+                            possible_plays.append(((row, col), (target_row, target_col)))
+
+                        elif target_piece is None and not (abs(direction[0]) == 1 and abs(direction[1]) == 1): # ta certo isso? era pra mover pra um espaco vazio
+                            possible_plays.append(((row, col), (target_row, target_col)))
+
+
+    return possible_plays
+
+
+  def silver_player_possible_plays(self):
+    possible_plays = []
+    directions = [(-1, -1), (-1, 1), (1, -1), (1, 1), (0, -1), (0, 1), (-1, 0), (1, 0)]  
+
+    for row in range(len(self.board)):
+      for col in range(len(self.board[row])):
+        if self.board[row][col] == 'S':  # passa iterando pelas peças até achar uma silver
+          for direction in directions:
+            target_row, target_col = row + direction[0], col + direction[1]
+
+            if 0 <= target_row < len(self.board) and 0 <= target_col < len(self.board[0]): # dentro do tabuleiro
+                target_piece = self.board[target_row][target_col]
+
+                if abs(direction[0]) == 1 and abs(direction[1]) == 1: # se for na diagonal, tem que capturar
+                    if target_piece in self.get_gold_player_pieces_symb():  
+                        possible_plays.append(((row, col), (target_row, target_col)))
+                elif target_piece is None:    # movimento vertical/hor pra espaço vazio
+                    possible_plays.append(((row, col), (target_row, target_col)))
+
+    return possible_plays #vai ser um ((pos1, pos2), (targetpos1, targetpos2)) 
   
   def minimax(self, depth, is_maximizing, alpha, beta, max_depth):
     pass
-
 
   def switch_player(self):
     if self.turn == 'G':
