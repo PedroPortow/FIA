@@ -22,6 +22,7 @@ class Board:
 
     self.turn = 'G'
     self.mode = None
+    self.nodes_evaluated = 0
 
   def choose_each_side(self):
     self.player_1 = random.choice(['G', 'S'])
@@ -99,10 +100,12 @@ class Board:
   def is_silver_turn(self):
     return self.turn == "S"
 
-  def make_play(self, start_row, start_col, play_row, play_col):
-    self.board[play_row][play_col] = self.board[start_row][start_col]
+  def make_play(self, start_row, start_col, play_row, play_col):  
+    captured_piece = self.board[play_row][play_col]  
+    self.board[play_row][play_col] = self.board[start_row][start_col]  
     self.board[start_row][start_col] = None  
-    
+    return captured_piece  # vai retornar o peça capturada, se tiver uma né pode ser nonee
+
   def verify_win(self):
    # WIN DO GOLD PLAYER 
     for i in [0, 6]: 
@@ -125,37 +128,45 @@ class Board:
     return None
   
   def player_2_turn(self):
-    self.nodes_evaluated = 0
+    max_depth = 3 # profundiade maxima
 
-    best_score = -float('inf')
+    best_score = float('-inf')
     best_play = None
 
-    alpha = float('-inf')
-    beta = float('inf')
+    possible_plays = self.gold_player_possible_plays() if self.player_2 == 'G' else self.silver_player_possible_plays()
 
-    print(self.silver_player_possible_plays())
+                  # X    Y                        # X  Y
+    # PLAY => ( (POSIÇÃO ATUAL DA PEÇA)  ,  (NOVA POSIÇÃO DA PLAY)  )
+    for play in possible_plays:
+      print("---")
+      print(play)
+      print("---")
+      self.print_board()
+      captured_piece = self.make_play(*play[0], *play[1])  # faz a jogaoda e retorna a peça
+      print(captured_piece)
+      self.print_board()
+      score = self.minimax(depth=0, is_maximizing=True, alpha=float('-inf'), beta=float('inf'), max_depth=max_depth)
+      self.undo_play(*play[1], *play[0], captured_piece)
+      self.print_board()
 
-    if self.player_2 == "S":
-      for play in self.silver_player_possible_plays(): # JOGADAS POSSIVEIS
-          self.make_play(*play[0], *play[1])
+      if score > best_score:
+          best_score = score
+          best_play = play
+    if best_play:
+        self.make_play(*best_play[0], *best_play[1])
+        self.switch_player()  
 
-          score = self.minimax(0, False, alpha, beta, 3)
+            
+  # TODO: Vai ter max_depth mesmo? vou ignorar por enquanto
+  def minimax(self, depth, is_maximizing, alpha, beta, max_depth):
+    result = self.verify_win()  # Vitória => 'G', 'S' #Empate => retorna None
+    
 
-          print(*play[0])
-          print(*play[1])
-          self.undo_play(*play[1], *play[0]) #desfazendo a jogada
-
-          if score > best_score:
-              best_score = score
-              best_play = play
-
-      if best_play:
-          self.make_play(*best_play[0], *best_play[1])
-          self.switch_player()  
-          
-    elif self.player_2 == "G":
-      pass
-
+  
+  def undo_play(self, start_row, start_col, play_row, play_col, captured_piece):
+    self.board[play_row][play_col] = self.board[start_row][start_col]
+    self.board[start_row][start_col] = captured_piece
+ 
   def gold_player_possible_plays(self):
     possible_plays = []
     directions = [(-1, -1), (-1, 1), (1, -1), (1, 1), (0, -1), (0, 1), (-1, 0), (1, 0)]  #
@@ -200,8 +211,6 @@ class Board:
 
     return possible_plays #vai ser um ((pos1, pos2), (targetpos1, targetpos2)) 
   
-  def minimax(self, depth, is_maximizing, alpha, beta, max_depth):
-    pass
 
   def switch_player(self):
     if self.turn == 'G':
@@ -212,5 +221,8 @@ class Board:
   def print_board(self):
       for row in self.board:
           print(' '.join(['-' if cell is None else cell for cell in row]))
+      print("")
+      print("")
+      print("")
 
 board = Board()
