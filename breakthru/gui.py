@@ -28,11 +28,7 @@ class GUI(App):
         btn_play_vs_ai = Button(text='Jogar contra IA', size_hint=(None, None), size=(200, 50))
         btn_play_vs_ai.bind(on_press=self.set_mode_play_vs_ai)
 
-        btn_ai_vs_ai = Button(text='IA vs IA', size_hint=(None, None), size=(200, 50))
-        btn_ai_vs_ai.bind(on_press=self.set_mode_ai_vs_ai)
-
         menu_layout.add_widget(btn_play_vs_ai)
-        menu_layout.add_widget(btn_ai_vs_ai)
 
         return menu_layout
     
@@ -53,6 +49,7 @@ class GUI(App):
         labels_layout = BoxLayout(orientation='vertical', size_hint_y=None, padding=5)
         self.turn_label = Label(text='', font_size=24, size_hint_y=None, height=50)
         self.status_label = Label(text='', font_size=20, size_hint_y=None, height=50)
+        
         labels_layout.add_widget(self.turn_label)  
         labels_layout.add_widget(self.status_label)  
 
@@ -60,17 +57,11 @@ class GUI(App):
 
         if self.board.mode == "player_vs_ai":
             self.start_mode_player_vs_ai()
-        elif self.board.mode == "ai_vs_ai":
-            self.start_mode_ai_vs_ai()
 
         return main_layout
 
     def set_mode_play_vs_ai(self, instance):
         self.board.mode = 'player_vs_ai'
-        self.start_game_layout()  
-
-    def set_mode_ai_vs_ai(self, instance):
-        self.board.mode = 'ai_vs_ai'
         self.start_game_layout()  
 
     def start_game_layout(self):
@@ -80,9 +71,7 @@ class GUI(App):
     def set_turn_label(self):
         if self.board.mode == 'player_vs_ai':
             self.turn_label.text = "Sua vez!" if self.board.is_player_turn else "Vez do robozão :("
-        if self.board.mode == 'ai_vs_ai':
-            self.turn_label.text = f"Vez do {self.board.player_1}!" if self.board.is_player_turn else f"Vez do {self.board.player_2}!"
-
+      
     def get_cell_color(self, cell, row, col):
         if self.first_button_pressed == (row, col):
             return (0, 1, 0, 1)  
@@ -99,11 +88,8 @@ class GUI(App):
         self.status_label.text = message
 
     def button_pressed(self, instance, row, col):
-        if self.board.mode == "ai_vs_ai":
-            self.print_status_label("Modo IA vs IA. Botões desabilitadosS")
-            return
-
-        if not self.board.is_player_turn(): #não é vez do player
+        print(self.board.turn)
+        if not self.board.is_player_turn():
             self.print_status_label("Não é sua vez!")
             return
 
@@ -125,20 +111,14 @@ class GUI(App):
             self.board.make_play(self.first_button_pressed[0], self.first_button_pressed[1], row, col)
             self.first_button_pressed = None
             self.board.switch_player()
-            self.board.player_2_turn()            
+            self.board.ai_player_turn()            
 
     def start_mode_player_vs_ai(self):
         self.set_turn_label()
         if self.board.is_ai_turn():  
             self.print_status_label("ai")
-            self.board.player_2_turn()
-            self.board.switch_player()
+            self.board.ai_player_turn()
 
-    def start_mode_ai_vs_ai(self):
-        self.set_turn_label()
-#         if self.board.is_ai_turn():  
-#             self.print_status_label("ai")
-# # 
     def update_ui(self):
         self.set_turn_label()
         for (row, col), button in self.button_positions.items():
