@@ -3,7 +3,7 @@ import random
 class Board:
   def __init__(self):
     self.board = self.initialize_board()
-
+    self.on_ai_turn_finished = None 
     # QUANDO FOR PLAYER VS IA, ESSE É O PLAYER
     self.player_1 = 'G'    
 
@@ -152,6 +152,8 @@ class Board:
     if best_play:
         self.make_play(*best_play[0], *best_play[1])
         self.switch_player()  
+        if self.on_ai_turn_finished:  # Verifica se o callback foi definido
+          self.on_ai_turn_finished() 
 
   def get_flasgship_pos(self):
     return [(r, c) for r, row in enumerate(self.board) for c, val in enumerate(row) if val == 'X'][0]
