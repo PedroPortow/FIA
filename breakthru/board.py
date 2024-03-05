@@ -1,14 +1,4 @@
 import random
-# B => BOT (AI)
-# P => PLAYER
-
-# UM MOVIMENTO POR VEZ (OU CAPTURA)
-
-# CAPTURA SÓ NA DIAGONAL!
-# ( QUE NEM O PEÃO DO XADREZ )
-
-# SE FLAGSHIP CHEGAR NO OUTERMOST SQUARES, GOLD GANHA
-# SE SILVER CAPTURAR O FLAGSHIP, SILVER GANHA
 
 class Board:
   def __init__(self):
@@ -23,6 +13,10 @@ class Board:
     self.turn = 'G'
     self.mode = None
     self.nodes_evaluated = 0
+    self.heuristic_weights = {
+      'close_to_edge': 10,
+      'silvers_near_flagship': 15
+    }
 
   def choose_each_side(self):
     self.player_1 = random.choice(['G', 'S'])
@@ -156,10 +150,80 @@ class Board:
         self.make_play(*best_play[0], *best_play[1])
         self.switch_player()  
 
-            
+  def get_flasgship_pos(self):
+    return [(r, c) for r, row in enumerate(self.board) for c, val in enumerate(row) if val == 'X'][0]
+  
+  def get_flagship_distance_from_edge(self):
+    flagship_pos = self.get_flasgship_pos()
+    return min(flagship_pos[0], 6-flagship_pos[0], flagship_pos[1], 6-flagship_pos[1])
+  
+  def silvers_pieces_near_flagship(self):
+    silvers_near_flagship = 0
+    flagship_pos = self.get_flasgship_pos()
+
+    for row, col in [(-1, 0), (1, 0), (0, -1), (0, 1), (-1, -1), (-1, 1), (1, -1), (1, 1)]:
+        if 0 <= flagship_pos[0]+row < 7 and 0 <= flagship_pos[1]+col < 7:
+            if self.board[flagship_pos[0]+row][flagship_pos[1]+col] == 'S':
+                silvers_near_flagship += 1
+    return silvers_near_flagship
+
+
+  def heuristic_evaluation(self):
+    gold_evaluation = (7 - self.get_flagship_distance_from_edge()) * self.heuristic_weights['close_to_edge'] # 10
+    silver_evaluation = self.silvers_pieces_near_flagship() * self.heuristic_weights['silvers_near_flagship']  #15
+    
+    if self.player_2 == 'G': # se AI é G
+        return gold_evaluation - silver_evaluation
+    elif self.player_2 == 'S': # se AI É S
+        return silver_evaluation - gold_evaluation
+
+
+  def evaluate_board(self, result, depth):
+      if result == 'G': 
+        return -1000 + depth
+      elif result == 'S': 
+        return 1000 - depth
+      else:  # HEURÍSTICA
+        return self.heuristic_evaluation()
+
   # TODO: Vai ter max_depth mesmo? vou ignorar por enquanto
-  def minimax(self, depth, is_maximizing, alpha, beta, max_depth):
-    result = self.verify_win()  # Vitória => 'G', 'S' #Empate => retorna None
+  # TODO: Implementar pro modo IAxIA, esse primeiro vai ser somente pensando que
+  # MEU TIME => G, BOT TIME => S
+  def minimax(self, depth, is_maximizing, alpha, beta, max_depth = 10000):
+    result = self.verify_win()  # Vitória => 'G', 'S' 
+
+    if result is not None or depth == max_depth:  # Se chegou em um estado de vitória ou chegou no limite de depth sem acabar o jogo
+      return self.evaluate_board(result, depth)
+
+      
+    if is_maximizing:
+      max_score = float('-inf')
+      possible_plays = self.gold_player_possible_plays() if self.turn == 'G' else self.silver_player_possible_plays()
+      for play in possible_plays:
+        captured_piece = self.make_play(*play[0], *play[1])
+        score = self.minimax(depth + 1, False, alpha, beta, max_depth)
+        self.undo_play(*play[1], *play[0], captured_piece)
+
+        max_score = max(max_score, score)
+        alpha = max(alpha, score)
+
+        if beta <= alpha:
+            break
+      return max_score
+    else:
+        min_eval = float('inf')
+        possible_plays = self.silver_player_possible_plays() if self.turn == 'G' else self.gold_player_possible_plays()
+        for play in possible_plays:
+            captured_piece = self.make_play(*play[0], *play[1])
+            score = self.minimax(depth + 1, True, alpha, beta, max_depth)
+            self.undo_play(*play[1], *play[0], captured_piece)
+
+            min_eval = min(min_eval, score)
+            beta = min(beta, score)
+
+            if beta <= alpha:
+                break
+        return min_eval
     
 
   
