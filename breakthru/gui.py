@@ -9,9 +9,9 @@ from board import Board
 class GUI(App):
     def __init__(self, **kwargs):
         super(GUI, self).__init__(**kwargs)
+        self.board = Board()
         self.first_button_pressed = None
         self.button_positions = {}
-        self.board = Board()
         self.turn_label = None  
         self.status_label = None  
 
@@ -122,7 +122,7 @@ class GUI(App):
         if self.board.is_valid_play(self.first_button_pressed[0], self.first_button_pressed[1], row, col): # aqui tem que adicionar limitação de 1 casa por vez
             self.board.make_play(self.first_button_pressed[0], self.first_button_pressed[1], row, col)
             self.first_button_pressed = None
-            self.update_ui()
+            # self.update_ui()
             self.board.switch_player()
             self.board.player_2_turn()            
 
@@ -133,14 +133,6 @@ class GUI(App):
             self.print_status_label("ai")
             self.board.player_2_turn()
             self.board.switch_player()
-
-        # while True:
-        #     if self.board.is_ai_turn():  
-        #         self.print_status_label("ai")
-        #         self.board.player_2_turn()
-        #     elif self.board.is_player_turn():
-        #         print("VEZ DO PLAYER")
-    
 
     def start_mode_ai_vs_ai(self):
         self.set_turn_label()

@@ -36,6 +36,9 @@ class Board:
     return self.turn == self.player_2
   
   def is_valid_first_press(self, row, col):
+    self.print_board()
+    print(row, col)
+    print(self.board[row][col])
     if self.turn == "G" and (self.board[row][col] == "G" or self.board[row][col] == "X"):
       return True
     elif self.turn == "S" and (self.board[row][col] == "S"):
@@ -153,13 +156,11 @@ class Board:
   def get_flasgship_pos(self):
     return [(r, c) for r, row in enumerate(self.board) for c, val in enumerate(row) if val == 'X'][0]
   
-  def get_flagship_distance_from_edge(self):
-    flagship_pos = self.get_flasgship_pos()
+  def get_flagship_distance_from_edge(self, flagship_pos):
     return min(flagship_pos[0], 6-flagship_pos[0], flagship_pos[1], 6-flagship_pos[1])
   
-  def silvers_pieces_near_flagship(self):
+  def silvers_pieces_near_flagship(self, flagship_pos):
     silvers_near_flagship = 0
-    flagship_pos = self.get_flasgship_pos()
 
     for row, col in [(-1, 0), (1, 0), (0, -1), (0, 1), (-1, -1), (-1, 1), (1, -1), (1, 1)]:
         if 0 <= flagship_pos[0]+row < 7 and 0 <= flagship_pos[1]+col < 7:
@@ -167,10 +168,30 @@ class Board:
                 silvers_near_flagship += 1
     return silvers_near_flagship
 
+  # def pieces_capturable(self):
+  #     capturable_pieces = 0
+
+  #     pieces_to_check = 'S' if self.turn == 'G' else 'G'
+  #     enemy_piece = 'G' if self.turn == 'S' else 'S'
+
+  #     for row in range(7):
+  #         for col in range(7):
+  #             if self.board[row][col] == pieces_to_check:
+  #                 for d_row, d_col in [(-1, -1), (-1, 1), (1, -1), (1, 1)]:
+  #                     new_row = row + d_row
+  #                     new_col = col + d_col
+  #                     if 0 <= new_row < 7 and 0 <= new_col < 7 and self.board[new_row][new_col] == enemy_piece:
+  #                         print(enemy_piece)
+  #                         capturable_pieces += 1
+  #     return capturable_pieces
+
 
   def heuristic_evaluation(self):
-    gold_evaluation = (7 - self.get_flagship_distance_from_edge()) * self.heuristic_weights['close_to_edge'] # 10
-    silver_evaluation = self.silvers_pieces_near_flagship() * self.heuristic_weights['silvers_near_flagship']  #15
+    flagship_pos = self.get_flasgship_pos()
+    gold_evaluation = (7 - self.get_flagship_distance_from_edge(flagship_pos)) * self.heuristic_weights['close_to_edge'] # 10
+    silver_evaluation = self.silvers_pieces_near_flagship(flagship_pos) * self.heuristic_weights['silvers_near_flagship']  #15
+
+
     
     if self.player_2 == 'G': # se AI é G
         return gold_evaluation - silver_evaluation
@@ -275,7 +296,6 @@ class Board:
 
     return possible_plays #vai ser um ((pos1, pos2), (targetpos1, targetpos2)) 
   
-
   def switch_player(self):
     if self.turn == 'G':
       self.turn = 'S'
