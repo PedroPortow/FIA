@@ -34,7 +34,7 @@ class GUI(App):
     
     def build_game(self):
         main_layout = BoxLayout(orientation='vertical', padding=10, spacing=10)  
-        board_layout = GridLayout(cols=7, padding=10, spacing=10) 
+        board_layout = GridLayout(cols=7, padding=10, spacing=2) 
 
         board_data = self.board.board
         for row_index, row in enumerate(board_data):
