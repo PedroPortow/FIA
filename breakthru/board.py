@@ -62,6 +62,23 @@ class Board:
 
     return board
   
+  def is_game_over(self):
+    for i in [0, 6]:    # Vitória do GOLD
+      for j in range(7): 
+        if self.board[i][j] == 'X' or self.board[j][i] == 'X':
+            print("Gold ganhou! Chegou nos outermost squares")
+            return
+        
+    flagship_found = False    # WIN SILVER (N TEM FLAGSHIP)
+    for row in self.board:
+      if 'X' in row:
+        flagship_found = True
+        break
+
+    if not flagship_found:
+      print("Silver wins! (Flagship was captured)")
+      return 'S'
+  
   def is_valid_play(self, start_row, start_col, play_row, play_col):
     target_piece = self.board[play_row][play_col]
     row_diff = abs(play_row - start_row)
