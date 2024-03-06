@@ -16,6 +16,12 @@ class GUI(App):
         self.button_positions = {}
         self.turn_label = None  
         self.status_label = None  
+        self.player_pieces_label = None
+        self.players_labels_options = {
+            "G": "Peças douradas (G, X)",
+            "S": "Peças prata (S)"
+        }  
+        self.ai_pieces_label = None      
 
     def build(self):
         Window.size = (800, 600)
@@ -36,6 +42,14 @@ class GUI(App):
         main_layout = BoxLayout(orientation='vertical', padding=10, spacing=10)  
         board_layout = GridLayout(cols=7, padding=10, spacing=2) 
 
+        pieces_label_layout = BoxLayout(orientation='horizontal', size_hint_y=None, height=30, padding=5)
+
+        self.player_pieces_label = Label(text=f"Você: {self.players_labels_options[self.board.player_1]}", font_size=16)
+        self.ai_pieces_label = Label(text=f"IA: {self.players_labels_options[self.board.ai_player]}", font_size=16)
+
+        pieces_label_layout.add_widget(self.player_pieces_label)
+        pieces_label_layout.add_widget(self.ai_pieces_label)
+
         board_data = self.board.board
         for row_index, row in enumerate(board_data):
             for col_index, cell in enumerate(row):
@@ -53,13 +67,22 @@ class GUI(App):
         labels_layout.add_widget(self.turn_label)  
         labels_layout.add_widget(self.status_label)  
 
+        main_layout.add_widget(pieces_label_layout, index=1)
         main_layout.add_widget(labels_layout) 
 
         if self.board.mode == "player_vs_ai":
             self.start_mode_player_vs_ai()
 
         return main_layout
-
+    
+    def is_game_over(self):
+        result = self.board.verify_win()
+        if result:
+            if result == 'G':
+                self.print_status_label("Parabéns! As peças douradas venceram!")
+            elif result == 'S':
+                self.print_status_label("Parabéns! As peças pratas venceram!")
+        
     def set_mode_play_vs_ai(self, instance):
         self.board.mode = 'player_vs_ai'
         self.start_game_layout()  
@@ -116,7 +139,6 @@ class GUI(App):
     def start_mode_player_vs_ai(self):
         self.set_turn_label()
         if self.board.is_ai_turn():  
-            self.print_status_label("ai")
             self.board.ai_player_turn()
 
     def update_ui(self):
@@ -125,6 +147,7 @@ class GUI(App):
             cell = self.board.board[row][col]
             button.text = cell if cell else '-'
             button.background_color = self.get_cell_color(cell, row, col)
+        self.is_game_over()
 
     def update_button_colors(self):
         for (row, col), button in self.button_positions.items():

@@ -10,9 +10,12 @@ class Board:
     self.turn = self.choose_first_player()
     self.nodes_evaluated = 0
     self.heuristic_weights = {
-      'close_to_edge': 10,
-      'silvers_near_flagship': 15
-    }
+      'close_to_edge': 75,
+      'silvers_near_flagship': 30,
+      'gold_pieces_near_flagship': 10,  # n é tãooo importante
+      'capturable_pieces': 30
+  }
+
 
     self.choose_each_side()
   def choose_each_side(self):
@@ -39,7 +42,7 @@ class Board:
       return True
     
     return False
-
+  
   def initialize_board(self):
     board = [[None for _ in range(7)] for _ in range(7)]
     
@@ -62,22 +65,7 @@ class Board:
 
     return board
   
-  def is_game_over(self):
-    for i in [0, 6]:    # Vitória do GOLD
-      for j in range(7): 
-        if self.board[i][j] == 'X' or self.board[j][i] == 'X':
-            print("Gold ganhou! Chegou nos outermost squares")
-            return
-        
-    flagship_found = False    # WIN SILVER (N TEM FLAGSHIP)
-    for row in self.board:
-      if 'X' in row:
-        flagship_found = True
-        break
 
-    if not flagship_found:
-      print("Silver wins! (Flagship was captured)")
-      return 'S'
   
   def is_valid_play(self, start_row, start_col, play_row, play_col):
     target_piece = self.board[play_row][play_col]
@@ -157,14 +145,14 @@ class Board:
     if best_play:
         self.make_play(*best_play[0], *best_play[1])
         self.switch_player()  
-        if self.on_ai_turn_finished:  # Verifica se o callback foi definido
+        if self.on_ai_turn_finished: 
           self.on_ai_turn_finished() 
 
   def get_flasgship_pos(self):
     return [(r, c) for r, row in enumerate(self.board) for c, val in enumerate(row) if val == 'X'][0]
   
   def get_flagship_distance_from_edge(self, flagship_pos):
-    return min(flagship_pos[0], 6-flagship_pos[0], flagship_pos[1], 6-flagship_pos[1])
+    return min(flagship_pos[0], 6-flagship_pos[0], flagship_pos[1], 6-flagship_pos[1]) # dsitancia euclidiana??:
   
   def silvers_pieces_near_flagship(self, flagship_pos):
     silvers_near_flagship = 0
@@ -221,16 +209,25 @@ class Board:
     return capturable_pieces_count
 
   # TODO: Adicioanr todas as heurísticas e ver qual "peso" fica melhor
+  # Problemas: quando IA é gold tá impossível dela ganhar
   # Problemas: gold tão correndo pra borda sem sentido (heurística deve ser o flagship perto da borda? pq n adianta os gold sair correndo pra borda aleatoriamente)
-  def heuristic_evaluation(self): # Definindo pesos pra cada heurística, pra poder alterar o quão o resultado de uma heurística é "importante"
+  def heuristic_evaluation(self):
     flagship_pos = self.get_flasgship_pos()
-    gold_evaluation = (7 - self.get_flagship_distance_from_edge(flagship_pos)) * self.heuristic_weights['close_to_edge'] # 10
-    silver_evaluation = self.silvers_pieces_near_flagship(flagship_pos) * self.heuristic_weights['silvers_near_flagship']  #15
 
-    if self.ai_player == 'G': # se AI é G
-        return gold_evaluation - silver_evaluation
-    elif self.ai_player == 'S': # se AI É S
-        return silver_evaluation - gold_evaluation
+    gold_evaluation = (7 - self.get_flagship_distance_from_edge(flagship_pos)) * self.heuristic_weights['close_to_edge']
+    silver_evaluation = self.silvers_pieces_near_flagship(flagship_pos) * self.heuristic_weights['silvers_near_flagship']
+    
+    gold_protection = self.gold_pieces_near_flagship(flagship_pos) * self.heuristic_weights['gold_pieces_near_flagship']
+    capturable = self.capturable_pieces() * self.heuristic_weights['capturable_pieces']
+
+    total_evaluation = gold_evaluation + silver_evaluation + gold_protection + capturable
+
+
+    if self.ai_player == 'G':  # se AI é G
+        return total_evaluation
+    elif self.ai_player == 'S':  # se AI É S
+        return -total_evaluation  # qi avançado
+
 
   def evaluate_board(self, result, depth):
       if result == self.player_1: 
