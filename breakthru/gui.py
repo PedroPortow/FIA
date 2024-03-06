@@ -21,7 +21,10 @@ class GUI(App):
             "G": "Peças douradas (G, X)",
             "S": "Peças prata (S)"
         }  
-        self.ai_pieces_label = None      
+        self.ai_pieces_label = None    
+        self.nodes_evaluated_label = None
+        self.ai_time_label = None
+  
 
     def build(self):
         Window.size = (800, 600)
@@ -60,12 +63,18 @@ class GUI(App):
 
         main_layout.add_widget(board_layout)
 
-        labels_layout = BoxLayout(orientation='vertical', size_hint_y=None, padding=5)
+        labels_layout = BoxLayout(orientation='vertical', size_hint_y=None, height=200, padding=5)
         self.turn_label = Label(text='', font_size=24, size_hint_y=None, height=50)
         self.status_label = Label(text='', font_size=20, size_hint_y=None, height=50)
+
+        self.nodes_evaluated_label = Label(text="Nós avaliados pela IA: 0",  height=50, font_size=16)
+        self.ai_time_label = Label(text="Tempo de jogada da IA: 0s",  height=50, font_size=16)
         
         labels_layout.add_widget(self.turn_label)  
         labels_layout.add_widget(self.status_label)  
+
+        labels_layout.add_widget(self.nodes_evaluated_label)
+        labels_layout.add_widget(self.ai_time_label)
 
         main_layout.add_widget(pieces_label_layout, index=1)
         main_layout.add_widget(labels_layout) 
@@ -141,13 +150,19 @@ class GUI(App):
         if self.board.is_ai_turn():  
             self.board.ai_player_turn()
 
-    def update_ui(self):
+    def update_ui(self, elapsed_time, nodes_evaluated):
+        self.update_ai_stats(elapsed_time, nodes_evaluated)
+
         self.set_turn_label()
         for (row, col), button in self.button_positions.items():
             cell = self.board.board[row][col]
             button.text = cell if cell else '-'
             button.background_color = self.get_cell_color(cell, row, col)
         self.is_game_over()
+
+    def update_ai_stats(self, elapsed_time, nodes_evaluated):
+        self.ai_time_label.text = f"Tempo de jogada da IA: {elapsed_time:.2f}s"
+        self.nodes_evaluated_label.text = f"Nós avaliados pela IA: {nodes_evaluated}"
 
     def update_button_colors(self):
         for (row, col), button in self.button_positions.items():

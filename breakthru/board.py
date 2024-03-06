@@ -1,4 +1,5 @@
 import random
+import time
 
 class Board:
   def __init__(self):
@@ -9,6 +10,7 @@ class Board:
     self.ai_player = None
     self.turn = self.choose_first_player()
     self.nodes_evaluated = 0
+
     self.heuristic_weights = {
       'close_to_edge': 75,
       'silvers_near_flagship': 30,
@@ -118,17 +120,19 @@ class Board:
       print("Silver wins! (Flagship was captured)")
       return 'S'
 
-    return None # Não foi vitória de ninguem
+    return None
   
   def ai_player_turn(self):
-    max_depth = 4 # máximo ........ :(
+    start_time = time.time()  
+    self.nodes_evaluated = 0
+    max_depth = 4
 
     best_score = float('-inf')
     best_play = None
 
     possible_plays = self.gold_player_possible_plays() if self.ai_player == 'G' else self.silver_player_possible_plays()
-                                              # X     Y                        # X  Y
-    for play in possible_plays: # PLAY => ( (POSIÇÃO ATUAL DA PEÇA)  ,  (NOVA POSIÇÃO DA PLAY)  )
+    
+    for play in possible_plays: 
       self.print_board()
       
       captured_piece = self.make_play(*play[0], *play[1]) 
@@ -145,14 +149,20 @@ class Board:
     if best_play:
         self.make_play(*best_play[0], *best_play[1])
         self.switch_player()  
+
+        end_time = time.time()  
+        elapsed_time = end_time - start_time
+
+        print(f"IA levou {elapsed_time} segundos para jogar.")
+        print(f"Nós avaliados: {self.nodes_evaluated}")
         if self.on_ai_turn_finished: 
-          self.on_ai_turn_finished() 
+          self.on_ai_turn_finished(elapsed_time, self.nodes_evaluated) 
 
   def get_flasgship_pos(self):
     return [(r, c) for r, row in enumerate(self.board) for c, val in enumerate(row) if val == 'X'][0]
   
   def get_flagship_distance_from_edge(self, flagship_pos):
-    return min(flagship_pos[0], 6-flagship_pos[0], flagship_pos[1], 6-flagship_pos[1]) # dsitancia euclidiana??:
+    return min(flagship_pos[0], 6-flagship_pos[0], flagship_pos[1], 6-flagship_pos[1]) # dsitancia euclidiana?? acho q ta errado isso
   
   def silvers_pieces_near_flagship(self, flagship_pos):
     silvers_near_flagship = 0
@@ -240,9 +250,10 @@ class Board:
     
 
   def minimax(self, depth, is_maximizing, alpha, beta, max_depth = 10000):
+    self.nodes_evaluated += 1
     result = self.verify_win() 
 
-    if result is not None or depth == max_depth:  # Se chegou em um estado de vitória ou chegou no limite de depth sem acabar o jogo
+    if result is not None or depth == max_depth:  
       return self.evaluate_board(result, depth)
       
     if is_maximizing:
