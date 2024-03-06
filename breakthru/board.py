@@ -12,12 +12,14 @@ class Board:
     self.nodes_evaluated = 0
 
     self.heuristic_weights = {
-      'close_to_edge': 75,
+      'close_to_edge': 100,
       'silvers_near_flagship': 30,
       'gold_pieces_near_flagship': 10,  # n é tãooo importante
-      'capturable_pieces': 30
+      'capturable_pieces': 30,
+      'captured_pieces': 40 #
+      # peça vai estar segura ao fazer aquele movimento ou vai morrer de graça?
+      # principalemnte o flagship, já vi ele se matar
   }
-
 
     self.choose_each_side()
   def choose_each_side(self):
@@ -101,6 +103,7 @@ class Board:
     captured_piece = self.board[play_row][play_col]  
     self.board[play_row][play_col] = self.board[start_row][start_col]  
     self.board[start_row][start_col] = None  
+    
     return captured_piece  
 
   def verify_win(self):
@@ -182,11 +185,14 @@ class Board:
                 gold_pieces_near_flagship += 1
     return gold_pieces_near_flagship
   
-
-
   def flagship_out_of_danger(self): 
     # flagship não se matar
     pass
+
+  def captured_pieces(self):
+    if self.ai_player == "G":
+      # AQUI
+     pass
 
   def capturable_pieces(self):
     capturable_pieces_count = 0
@@ -203,10 +209,10 @@ class Board:
                     if 0 <= check_row < 7 and 0 <= check_col < 7:  # ta dentro do tabulewiro
                         target_piece = self.board[check_row][check_col] # peça da diagonal
 
-                        if target_piece == 'S':  # GOLD pode capturar SILVER
+                        if target_piece == "S":  # GOLD pode capturar SILVER
                             capturable_pieces_count += 1
 
-            elif self.is_silver_turn() and current_piece == 'S':
+            elif self.ai_player == "S" and current_piece == "S":
                 for diagonal_row, diagonal_col in directions:
                     check_row, check_col = row + diagonal_row, col + diagonal_col
 
@@ -224,13 +230,14 @@ class Board:
   def heuristic_evaluation(self):
     flagship_pos = self.get_flasgship_pos()
 
+    print(7 - self.get_flagship_distance_from_edge(flagship_pos))
     gold_evaluation = (7 - self.get_flagship_distance_from_edge(flagship_pos)) * self.heuristic_weights['close_to_edge']
     silver_evaluation = self.silvers_pieces_near_flagship(flagship_pos) * self.heuristic_weights['silvers_near_flagship']
     
     gold_protection = self.gold_pieces_near_flagship(flagship_pos) * self.heuristic_weights['gold_pieces_near_flagship']
     capturable = self.capturable_pieces() * self.heuristic_weights['capturable_pieces']
 
-    total_evaluation = gold_evaluation + silver_evaluation + gold_protection + capturable
+    total_evaluation = gold_evaluation + silver_evaluation + gold_protection + capturable 
 
 
     if self.ai_player == 'G':  # se AI é G

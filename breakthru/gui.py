@@ -47,8 +47,8 @@ class GUI(App):
 
         pieces_label_layout = BoxLayout(orientation='horizontal', size_hint_y=None, height=30, padding=5)
 
-        self.player_pieces_label = Label(text=f"Você: {self.players_labels_options[self.board.player_1]}", font_size=16)
-        self.ai_pieces_label = Label(text=f"IA: {self.players_labels_options[self.board.ai_player]}", font_size=16)
+        self.player_pieces_label = Label(text=f"Você: {self.players_labels_options[self.board.player_1]}", font_size=35)
+        self.ai_pieces_label = Label(text=f"IA: {self.players_labels_options[self.board.ai_player]}", font_size=35)
 
         pieces_label_layout.add_widget(self.player_pieces_label)
         pieces_label_layout.add_widget(self.ai_pieces_label)
@@ -64,11 +64,11 @@ class GUI(App):
         main_layout.add_widget(board_layout)
 
         labels_layout = BoxLayout(orientation='vertical', size_hint_y=None, height=200, padding=5)
-        self.turn_label = Label(text='', font_size=24, size_hint_y=None, height=50)
-        self.status_label = Label(text='', font_size=20, size_hint_y=None, height=50)
+        self.turn_label = Label(text='', font_size=50, size_hint_y=None, height=50)
+        self.status_label = Label(text='', font_size=35, size_hint_y=None, height=50)
 
-        self.nodes_evaluated_label = Label(text="Nós avaliados pela IA: 0",  height=50, font_size=16)
-        self.ai_time_label = Label(text="Tempo de jogada da IA: 0s",  height=50, font_size=16)
+        self.nodes_evaluated_label = Label(text="Nós avaliados pela IA: 0",  height=30, font_size=35)
+        self.ai_time_label = Label(text="Tempo de jogada da IA: 0s",  height=30, font_size=35)
         
         labels_layout.add_widget(self.turn_label)  
         labels_layout.add_widget(self.status_label)  
