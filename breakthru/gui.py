@@ -114,7 +114,7 @@ class GUI(App):
         elif cell == 'X':
             return (0.8, 0.5, 0, 1)
         else:
-            return (0.8, 0.8, 0.8, 1)
+            return (0.0, 0.8196, 1.0, 1)  
         
     def print_status_label(self, message):
         self.status_label.text = message
