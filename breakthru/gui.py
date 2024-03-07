@@ -21,6 +21,7 @@ class GUI(App):
             "G": "Peças douradas (G, X)",
             "S": "Peças prata (S)"
         }  
+
         self.ai_pieces_label = None    
         self.nodes_evaluated_label = None
         self.ai_time_label = None
@@ -56,7 +57,7 @@ class GUI(App):
         board_data = self.board.board
         for row_index, row in enumerate(board_data):
             for col_index, cell in enumerate(row):
-                button = Button(text=cell if cell else '-', background_color=self.get_cell_color(cell, row_index, col_index))
+                button = Button(text=cell if cell else ' ', background_color=self.get_cell_color(cell, row_index, col_index))
                 button.bind(on_press=lambda instance, x=row_index, y=col_index: self.button_pressed(instance, x, y))
                 self.button_positions[(row_index, col_index)] = button
                 board_layout.add_widget(button)
@@ -125,8 +126,8 @@ class GUI(App):
             self.print_status_label("Não é sua vez!")
             return
 
-        if not self.first_button_pressed: # PRIMEIRA BOTÃO PRESSIONADO
-            if not self.board.is_valid_first_press(row, col): # verificação de pos invalida
+        if not self.first_button_pressed:
+            if not self.board.is_valid_first_press(row, col): 
                 self.print_status_label("INVALID FIRST PRESS")
                 return 
 
@@ -134,12 +135,12 @@ class GUI(App):
             self.update_button_colors()  
             return
 
-        if self.first_button_pressed == (row, col):  # CANCELOU A JOGADA!
+        if self.first_button_pressed == (row, col):  
             self.first_button_pressed = None
-            self.update_button_colors()  # update as cores
+            self.update_button_colors() 
             return
         
-        if self.board.is_valid_play(self.first_button_pressed[0], self.first_button_pressed[1], row, col): # aqui tem que adicionar limitação de 1 casa por vez
+        if self.board.is_valid_play(self.first_button_pressed[0], self.first_button_pressed[1], row, col): 
             self.board.make_play(self.first_button_pressed[0], self.first_button_pressed[1], row, col)
             self.first_button_pressed = None
             self.board.switch_player()
@@ -156,7 +157,7 @@ class GUI(App):
         self.set_turn_label()
         for (row, col), button in self.button_positions.items():
             cell = self.board.board[row][col]
-            button.text = cell if cell else '-'
+            button.text = cell if cell else ''
             button.background_color = self.get_cell_color(cell, row, col)
         self.is_game_over()
 

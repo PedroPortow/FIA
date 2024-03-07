@@ -13,15 +13,15 @@ class Board:
 
     self.heuristic_weights = {
       'close_to_edge': 100,
-      'silvers_near_flagship': 30,
-      'gold_pieces_near_flagship': 10,  # n é tãooo importante
-      'capturable_pieces': 30,
-      'captured_pieces': 40 #
-      # peça vai estar segura ao fazer aquele movimento ou vai morrer de graça?
-      # principalemnte o flagship, já vi ele se matar
-  }
+      'silvers_near_flagship': 100,
+      'gold_pieces_near_flagship': 40,  
+      'capturable_pieces': 45,
+      'captured_pieces': 50,
+      'flagship_in_danger': 300
+    }
 
     self.choose_each_side()
+
   def choose_each_side(self):
     self.player_1 = random.choice(['G', 'S'])
     self.ai_player = 'G' if self.player_1 == 'S' else 'S'
@@ -37,6 +37,23 @@ class Board:
   
   def is_ai_turn(self):
     return self.turn == self.ai_player
+  
+  def is_gold_turn(self):
+    return self.turn == "G"
+
+  def is_silver_turn(self):
+    return self.turn == "S"
+  
+  def make_play(self, start_row, start_col, play_row, play_col):  
+    captured_piece = self.board[play_row][play_col]  
+    self.board[play_row][play_col] = self.board[start_row][start_col]  
+    self.board[start_row][start_col] = None  
+    
+    return captured_piece  
+  
+  def undo_play(self, start_row, start_col, play_row, play_col, captured_piece):
+    self.board[play_row][play_col] = self.board[start_row][start_col]
+    self.board[start_row][start_col] = captured_piece
   
   def is_valid_first_press(self, row, col):
     self.print_board()
@@ -69,8 +86,6 @@ class Board:
 
     return board
   
-
-  
   def is_valid_play(self, start_row, start_col, play_row, play_col):
     target_piece = self.board[play_row][play_col]
     row_diff = abs(play_row - start_row)
@@ -91,42 +106,31 @@ class Board:
             return True
         return False  # Não permite movimento diagonal sem ser de captura
 
-    return False   # aqui vai cair casos como, movimentar pra um lugar ocupado sem poder comer tipo na reta
+    return False   # aqui vai cair casos como, movimentar pra um lugar ocupado tipo na reta ou horizontal
 
-  def is_gold_turn(self):
-    return self.turn == "G"
-
-  def is_silver_turn(self):
-    return self.turn == "S"
-
-  def make_play(self, start_row, start_col, play_row, play_col):  
-    captured_piece = self.board[play_row][play_col]  
-    self.board[play_row][play_col] = self.board[start_row][start_col]  
-    self.board[start_row][start_col] = None  
-    
-    return captured_piece  
 
   def verify_win(self):
-    for i in [0, 6]:  # WIN GOLD     
+    for i in [0, 6]:   
       for j in range(7):
         if self.board[i][j] == 'X' or self.board[j][i] == 'X':
-            print("Gold ganhou! Chegou nos outermost squares")
+            print("Gold ganhou!")
             return 'G'
     
-    flagship_found = False    # WIN SILVER (N TEM FLAGSHIP)
+    flagship_found = False    
     for row in self.board:
       if 'X' in row:
         flagship_found = True
         break
 
     if not flagship_found:
-      print("Silver wins! (Flagship was captured)")
+      print("Silver ganhou!")
       return 'S'
 
     return None
   
   def ai_player_turn(self):
     start_time = time.time()  
+    
     self.nodes_evaluated = 0
     max_depth = 4
 
@@ -136,13 +140,8 @@ class Board:
     possible_plays = self.gold_player_possible_plays() if self.ai_player == 'G' else self.silver_player_possible_plays()
     
     for play in possible_plays: 
-      self.print_board()
       
       captured_piece = self.make_play(*play[0], *play[1]) 
-      print(f"Peça capturada -> {captured_piece}")
-      print(f"Board após a captura")
-      self.print_board()
-
       score = self.minimax(depth=0, is_maximizing=True, alpha=float('-inf'), beta=float('inf'), max_depth=max_depth)
       self.undo_play(*play[1], *play[0], captured_piece)
 
@@ -158,6 +157,7 @@ class Board:
 
         print(f"IA levou {elapsed_time} segundos para jogar.")
         print(f"Nós avaliados: {self.nodes_evaluated}")
+
         if self.on_ai_turn_finished: 
           self.on_ai_turn_finished(elapsed_time, self.nodes_evaluated) 
 
@@ -165,7 +165,7 @@ class Board:
     return [(r, c) for r, row in enumerate(self.board) for c, val in enumerate(row) if val == 'X'][0]
   
   def get_flagship_distance_from_edge(self, flagship_pos):
-    return min(flagship_pos[0], 6-flagship_pos[0], flagship_pos[1], 6-flagship_pos[1]) # dsitancia euclidiana?? acho q ta errado isso
+    return (6 - min(flagship_pos[0], 6-flagship_pos[0], flagship_pos[1], 6-flagship_pos[1])) 
   
   def silvers_pieces_near_flagship(self, flagship_pos):
     silvers_near_flagship = 0
@@ -176,7 +176,7 @@ class Board:
                 silvers_near_flagship += 1
     return silvers_near_flagship
   
-  def gold_pieces_near_flagship(self, flagship_pos):            # golds protegendo a flagship
+  def gold_pieces_near_flagship(self, flagship_pos):            
     gold_pieces_near_flagship = 0
 
     for row, col in [(-1, 0), (1, 0), (0, -1), (0, 1), (-1, -1), (-1, 1), (1, -1), (1, 1)]:
@@ -185,16 +185,26 @@ class Board:
                 gold_pieces_near_flagship += 1
     return gold_pieces_near_flagship
   
-  def flagship_out_of_danger(self): 
-    # flagship não se matar
-    pass
+  def captured_pieces(self):  # Retorna quantas peças do inimigo foram capturadas
+    total_gold_pieces = 0
+    total_silver_pieces = 0
 
-  def captured_pieces(self):
-    if self.ai_player == "G":
-      # AQUI
-     pass
+    for row in self.board:
+        for cell in row:
+            if cell == 'G' or cell == 'X':  
+                total_gold_pieces += 1
+            elif cell == 'S':
+                total_silver_pieces += 1
 
-  def capturable_pieces(self):
+    golds_captured = 9 - total_gold_pieces
+    silvers_captured = 12 - total_silver_pieces
+
+    if self.ai_player == 'G':
+        return silvers_captured 
+    elif self.ai_player == 'S':
+        return golds_captured
+
+  def capturable_pieces(self):  # Retorna quantas peças do inimigo podem ser capturadas
     capturable_pieces_count = 0
     directions = [(-1, -1), (-1, 1), (1, -1), (1, 1)]  # Direções diagonais 
 
@@ -202,14 +212,14 @@ class Board:
         for col in range(len(self.board[row])):
             current_piece = self.board[row][col]
 
-            if self.ai_player == "G" and current_piece in self.get_gold_player_pieces_symb(): # SE É GOLD NÉ OBVIAMENTE
+            if self.ai_player == "G" and current_piece in self.get_gold_player_pieces_symb(): 
                 for diagonal_row, diagonal_col in directions:
                     check_row, check_col = row + diagonal_row, col + diagonal_col
 
-                    if 0 <= check_row < 7 and 0 <= check_col < 7:  # ta dentro do tabulewiro
-                        target_piece = self.board[check_row][check_col] # peça da diagonal
+                    if 0 <= check_row < 7 and 0 <= check_col < 7: 
+                        target_piece = self.board[check_row][check_col] 
 
-                        if target_piece == "S":  # GOLD pode capturar SILVER
+                        if target_piece == "S":  
                             capturable_pieces_count += 1
 
             elif self.ai_player == "S" and current_piece == "S":
@@ -223,45 +233,62 @@ class Board:
                             capturable_pieces_count += 1 
 
     return capturable_pieces_count
+  
+  def is_flagship_in_danger(self, flagship_pos,):
+    directions = [(-1, -1), (-1, 1), (1, -1), (1, 1)]
+    
+    for row, col in directions:
+        diagonal_row, diagonal_col = flagship_pos[0] + row, flagship_pos[1] + col
 
-  # TODO: Adicioanr todas as heurísticas e ver qual "peso" fica melhor
-  # Problemas: quando IA é gold tá impossível dela ganhar
-  # Problemas: gold tão correndo pra borda sem sentido (heurística deve ser o flagship perto da borda? pq n adianta os gold sair correndo pra borda aleatoriamente)
+        if 0 <= diagonal_row < 7 and 0 <= diagonal_col < 7: 
+          if self.board[diagonal_row][diagonal_col] == 'S':  
+              return True  # Vai ter silvers na diagonal do flagship
+    return False  
+
   def heuristic_evaluation(self):
     flagship_pos = self.get_flasgship_pos()
 
-    print(7 - self.get_flagship_distance_from_edge(flagship_pos))
-    gold_evaluation = (7 - self.get_flagship_distance_from_edge(flagship_pos)) * self.heuristic_weights['close_to_edge']
-    silver_evaluation = self.silvers_pieces_near_flagship(flagship_pos) * self.heuristic_weights['silvers_near_flagship']
+    flagship_dist_edge = self.get_flagship_distance_from_edge(flagship_pos) * self.heuristic_weights['close_to_edge'] # Distância flagship pro edge do tabuleiro
+
+    silver_near_flagship = self.silvers_pieces_near_flagship(flagship_pos) * self.heuristic_weights['silvers_near_flagship'] # Silvers perto do flagship (1 casa em todas as dir)
     
-    gold_protection = self.gold_pieces_near_flagship(flagship_pos) * self.heuristic_weights['gold_pieces_near_flagship']
-    capturable = self.capturable_pieces() * self.heuristic_weights['capturable_pieces']
+    gold_protection = self.gold_pieces_near_flagship(flagship_pos) * self.heuristic_weights['gold_pieces_near_flagship'] # Golds perto do flahship (1 cada em todas dir)
 
-    total_evaluation = gold_evaluation + silver_evaluation + gold_protection + capturable 
+    capturable_pieces = self.capturable_pieces() * self.heuristic_weights['capturable_pieces'] # Retorna peças capturable pelo jogador atual (G ou S)
+    
+    captured_pieces = self.captured_pieces() * self.heuristic_weights['captured_pieces']  # Retorna peças capturadas pelo jogador atual (G ou S)
 
+    is_flagship_in_danger = self.is_flagship_in_danger(flagship_pos) 
 
-    if self.ai_player == 'G':  # se AI é G
-        return total_evaluation
-    elif self.ai_player == 'S':  # se AI É S
-        return -total_evaluation  # qi avançado
+    if self.ai_player == 'G':  
+        gold_eval = (flagship_dist_edge - silver_near_flagship + gold_protection + capturable_pieces + captured_pieces) 
 
+        if is_flagship_in_danger:
+           gold_eval -= self.heuristic_weights['flagship_in_danger']
 
-  def evaluate_board(self, result, depth):
+        return gold_eval
+    elif self.ai_player == 'S': 
+        silver_eval = (silver_near_flagship - flagship_dist_edge - gold_protection + capturable_pieces + captured_pieces)
+        
+        if is_flagship_in_danger:
+          silver_eval += self.heuristic_weights['flagship_in_danger']
+
+        return silver_eval
+
+  def evaluate_board(self, result):
       if result == self.player_1: 
-        return -1000 + depth
+        return -9999
       elif result == self.ai_player: 
-        return 1000 - depth
+        return 9999
       else:  
         return self.heuristic_evaluation()
-      
-    
 
-  def minimax(self, depth, is_maximizing, alpha, beta, max_depth = 10000):
+  def minimax(self, depth, is_maximizing, alpha, beta, max_depth = 4):
     self.nodes_evaluated += 1
     result = self.verify_win() 
 
     if result is not None or depth == max_depth:  
-      return self.evaluate_board(result, depth)
+      return self.evaluate_board(result)
       
     if is_maximizing:
       max_score = float('-inf')
@@ -294,10 +321,7 @@ class Board:
                 break
         return min_score
     
-  def undo_play(self, start_row, start_col, play_row, play_col, captured_piece):
-    self.board[play_row][play_col] = self.board[start_row][start_col]
-    self.board[start_row][start_col] = captured_piece
- 
+
   def gold_player_possible_plays(self):
     possible_plays = []
     directions = [(-1, -1), (-1, 1), (1, -1), (1, 1), (0, -1), (0, 1), (-1, 0), (1, 0)]  #
