@@ -57,7 +57,7 @@ class GUI(App):
         board_data = self.board.board
         for row_index, row in enumerate(board_data):
             for col_index, cell in enumerate(row):
-                button = Button(text=cell if cell else ' ', background_color=self.get_cell_color(cell, row_index, col_index))
+                button = Button(text=cell if cell else ' ', background_color=self.get_cell_color(cell, row_index, col_index), background_normal='')
                 button.bind(on_press=lambda instance, x=row_index, y=col_index: self.button_pressed(instance, x, y))
                 self.button_positions[(row_index, col_index)] = button
                 board_layout.add_widget(button)
@@ -109,13 +109,13 @@ class GUI(App):
         if self.first_button_pressed == (row, col):
             return (0, 1, 0, 1)  
         elif cell == 'S':
-            return (1, 1, 1, 1)
+            return (0.663, 0.663, 0.663, 1)
         elif cell == 'G':
             return (1, 0.84, 0, 1)
         elif cell == 'X':
             return (0.8, 0.5, 0, 1)
         else:
-            return (0.0, 0.8196, 1.0, 1)  
+            return (0.086, 0.733, 1, 0.8)
         
     def print_status_label(self, message):
         self.status_label.text = message
