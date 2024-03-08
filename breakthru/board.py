@@ -13,11 +13,10 @@ class Board:
 
     self.heuristic_weights = {
       'close_to_edge': 100,
-      'silvers_near_flagship': 100,
-      'gold_pieces_near_flagship': 40,  
-      'capturable_pieces': 45,
-      'captured_pieces': 50,
-      'flagship_in_danger': 300
+      'silvers_near_flagship': 120,
+      'gold_pieces_near_flagship': 50,  
+      'capturable_pieces': 50,
+      'captured_pieces': 60,
     }
 
     self.choose_each_side()
@@ -234,17 +233,6 @@ class Board:
 
     return capturable_pieces_count
   
-  def is_flagship_in_danger(self, flagship_pos,):
-    directions = [(-1, -1), (-1, 1), (1, -1), (1, 1)]
-    
-    for row, col in directions:
-        diagonal_row, diagonal_col = flagship_pos[0] + row, flagship_pos[1] + col
-
-        if 0 <= diagonal_row < 7 and 0 <= diagonal_col < 7: 
-          if self.board[diagonal_row][diagonal_col] == 'S':  
-              return True  # Vai ter silvers na diagonal do flagship
-    return False  
-
   def heuristic_evaluation(self):
     flagship_pos = self.get_flasgship_pos()
 
@@ -258,22 +246,11 @@ class Board:
     
     captured_pieces = self.captured_pieces() * self.heuristic_weights['captured_pieces']  # Retorna peças capturadas pelo jogador atual (G ou S)
 
-    is_flagship_in_danger = self.is_flagship_in_danger(flagship_pos) 
 
     if self.ai_player == 'G':  
-        gold_eval = (flagship_dist_edge - silver_near_flagship + gold_protection + capturable_pieces + captured_pieces) 
-
-        if is_flagship_in_danger:
-           gold_eval -= self.heuristic_weights['flagship_in_danger']
-
-        return gold_eval
+        return (flagship_dist_edge - silver_near_flagship + gold_protection + capturable_pieces + captured_pieces) 
     elif self.ai_player == 'S': 
-        silver_eval = (silver_near_flagship - flagship_dist_edge - gold_protection + capturable_pieces + captured_pieces)
-        
-        if is_flagship_in_danger:
-          silver_eval += self.heuristic_weights['flagship_in_danger']
-
-        return silver_eval
+        return (silver_near_flagship - flagship_dist_edge - gold_protection + capturable_pieces + captured_pieces)
 
   def evaluate_board(self, result):
       if result == self.player_1: 

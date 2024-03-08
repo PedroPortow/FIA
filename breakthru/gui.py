@@ -19,7 +19,7 @@ class GUI(App):
         self.player_pieces_label = None
         self.players_labels_options = {
             "G": "Peças douradas (G, X)",
-            "S": "Peças prata (S)"
+            "S": "Peças prateadas (S)"
         }  
 
         self.ai_pieces_label = None    
@@ -91,7 +91,7 @@ class GUI(App):
             if result == 'G':
                 self.print_status_label("Parabéns! As peças douradas venceram!")
             elif result == 'S':
-                self.print_status_label("Parabéns! As peças pratas venceram!")
+                self.print_status_label("Parabéns! As peças prateadas venceram!")
         
     def set_mode_play_vs_ai(self, instance):
         self.board.mode = 'player_vs_ai'
@@ -109,7 +109,7 @@ class GUI(App):
         if self.first_button_pressed == (row, col):
             return (0, 1, 0, 1)  
         elif cell == 'S':
-            return (0.5, 0.5, 0.5, 1)
+            return (1, 1, 1, 1)
         elif cell == 'G':
             return (1, 0.84, 0, 1)
         elif cell == 'X':
