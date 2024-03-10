@@ -18,6 +18,7 @@ class Board:
       'gold_pieces_near_flagship': 1,  
       'capturable_pieces': 2,
       'captured_pieces': 4,
+      'flagship_in_danger': 4
     }
 
     self.choose_each_side()
@@ -25,6 +26,17 @@ class Board:
   def choose_each_side(self):
     self.player_1 = random.choice(['G', 'S'])
     self.ai_player = 'G' if self.player_1 == 'S' else 'S'
+  
+  def is_flagship_in_danger(self, flagship_pos,):
+    directions = [(-1, -1), (-1, 1), (1, -1), (1, 1)]
+
+    for row, col in directions:
+        diagonal_row, diagonal_col = flagship_pos[0] + row, flagship_pos[1] + col
+
+        if 0 <= diagonal_row < 7 and 0 <= diagonal_col < 7: 
+          if self.board[diagonal_row][diagonal_col] == 'S':  
+              return True  # Vai ter silvers na diagonal do flagship
+    return False  
 
   def choose_first_player(self):
     return random.choice(['G', 'S']);
@@ -132,7 +144,7 @@ class Board:
     start_time = time.time()  
     
     self.nodes_evaluated = 0
-    max_depth = 5
+    max_depth = 4
 
     best_score = -sys.maxsize - 1
     best_play = None
@@ -247,11 +259,23 @@ class Board:
     
     captured_pieces = self.captured_pieces() * self.heuristic_weights['captured_pieces']  # Retorna peças capturadas pelo jogador atual (G ou S)
 
+    is_flagship_in_danger = self.is_flagship_in_danger(flagship_pos) 
 
     if self.ai_player == 'G':  
-        return flagship_dist_edge + capturable_pieces + gold_protection + captured_pieces
+        gold_eval = flagship_dist_edge - silver_near_flagship + gold_protection + capturable_pieces + captured_pieces
+
+        if is_flagship_in_danger:
+            gold_eval -= self.heuristic_weights['flagship_in_danger']
+
+        return gold_eval
     elif self.ai_player == 'S': 
-        return silver_near_flagship - gold_protection + capturable_pieces + captured_pieces
+        silver_eval = silver_near_flagship - flagship_dist_edge - gold_protection + capturable_pieces + captured_pieces
+
+        if is_flagship_in_danger:
+          silver_eval += self.heuristic_weights['flagship_in_danger']
+
+        return silver_eval
+
 
   def evaluate_board(self, result):
       if result == self.player_1: 
@@ -316,7 +340,7 @@ class Board:
               if abs(direction[0]) == 1 and abs(direction[1]) == 1 and target_piece == 'S':  # diagonal precisa ser captura
                   possible_plays.append(((row, col), (target_row, target_col)))
 
-              elif target_piece is None and not (abs(direction[0]) == 1 and abs(direction[1]) == 1): # ta certo isso? era pra mover pra um espaco vazio
+              elif target_piece is None and not (abs(direction[0]) == 1 and abs(direction[1]) == 1):
                   possible_plays.append(((row, col), (target_row, target_col)))
 
     return possible_plays
