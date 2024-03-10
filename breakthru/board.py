@@ -1,5 +1,6 @@
 import random
 import time
+import sys
 
 class Board:
   def __init__(self):
@@ -12,11 +13,11 @@ class Board:
     self.nodes_evaluated = 0
 
     self.heuristic_weights = {
-      'close_to_edge': 100,
-      'silvers_near_flagship': 120,
-      'gold_pieces_near_flagship': 50,  
-      'capturable_pieces': 50,
-      'captured_pieces': 60,
+      'close_to_edge': 5,
+      'silvers_near_flagship': 5,
+      'gold_pieces_near_flagship': 1,  
+      'capturable_pieces': 2,
+      'captured_pieces': 4,
     }
 
     self.choose_each_side()
@@ -109,7 +110,7 @@ class Board:
 
 
   def verify_win(self):
-    for i in [0, 6]:   
+    for i in [0, 6]:   # Verificando se X está nas bordas
       for j in range(7):
         if self.board[i][j] == 'X' or self.board[j][i] == 'X':
             print("Gold ganhou!")
@@ -124,16 +125,16 @@ class Board:
     if not flagship_found:
       print("Silver ganhou!")
       return 'S'
-
+    
     return None
   
   def ai_player_turn(self):
     start_time = time.time()  
     
     self.nodes_evaluated = 0
-    max_depth = 4
+    max_depth = 5
 
-    best_score = float('-inf')
+    best_score = -sys.maxsize - 1
     best_play = None
 
     possible_plays = self.gold_player_possible_plays() if self.ai_player == 'G' else self.silver_player_possible_plays()
@@ -141,7 +142,7 @@ class Board:
     for play in possible_plays: 
       
       captured_piece = self.make_play(*play[0], *play[1]) 
-      score = self.minimax(depth=0, is_maximizing=True, alpha=float('-inf'), beta=float('inf'), max_depth=max_depth)
+      score = self.minimax(0, True, -sys.maxsize - 1, sys.maxsize, max_depth)
       self.undo_play(*play[1], *play[0], captured_piece)
 
       if score > best_score:
@@ -248,27 +249,27 @@ class Board:
 
 
     if self.ai_player == 'G':  
-        return (flagship_dist_edge - silver_near_flagship + gold_protection + capturable_pieces + captured_pieces) 
+        return flagship_dist_edge + capturable_pieces + gold_protection + captured_pieces
     elif self.ai_player == 'S': 
-        return (silver_near_flagship - flagship_dist_edge - gold_protection + capturable_pieces + captured_pieces)
+        return silver_near_flagship - gold_protection + capturable_pieces + captured_pieces
 
   def evaluate_board(self, result):
       if result == self.player_1: 
-        return -9999
+        return -9999999
       elif result == self.ai_player: 
-        return 9999
+        return 9999999
       else:  
         return self.heuristic_evaluation()
 
   def minimax(self, depth, is_maximizing, alpha, beta, max_depth = 4):
-    self.nodes_evaluated += 1
     result = self.verify_win() 
 
-    if result is not None or depth == max_depth:  
+    if result is not None or depth == max_depth :  
+      self.nodes_evaluated += 1
       return self.evaluate_board(result)
       
     if is_maximizing:
-      max_score = float('-inf')
+      max_score = -sys.maxsize - 1
       possible_plays = self.gold_player_possible_plays() if self.ai_player == 'G' else self.silver_player_possible_plays()
       
       for play in possible_plays:
@@ -283,7 +284,7 @@ class Board:
             break
       return max_score
     else:
-        min_score = float('inf')
+        min_score = sys.maxsize
         possible_plays = self.silver_player_possible_plays() if self.ai_player == 'G' else self.gold_player_possible_plays()
         
         for play in possible_plays:

@@ -107,11 +107,11 @@ class GUI(App):
       
     def get_cell_color(self, cell, row, col):
         if self.first_button_pressed == (row, col):
-            return (0, 1, 0, 1)  
+            return (0, 1, 0, 0.7)  
         elif cell == 'S':
             return (0.663, 0.663, 0.663, 1)
         elif cell == 'G':
-            return (1, 0.84, 0, 1)
+            return (1, 0.84, 0, 0.8)
         elif cell == 'X':
             return (0.8, 0.5, 0, 1)
         else:
