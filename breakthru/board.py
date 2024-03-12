@@ -18,7 +18,7 @@ class Board:
       'gold_pieces_near_flagship': 1,  
       'capturable_pieces': 2,
       'captured_pieces': 4,
-      'flagship_in_danger': 4
+      'flagship_in_danger': 44444
     }
 
     self.choose_each_side()
@@ -27,13 +27,16 @@ class Board:
     self.player_1 = random.choice(['G', 'S'])
     self.ai_player = 'G' if self.player_1 == 'S' else 'S'
   
-  def is_flagship_in_danger(self, flagship_pos,):
+  def is_flagship_in_danger(self, flagship_pos):
     directions = [(-1, -1), (-1, 1), (1, -1), (1, 1)]
 
     for row, col in directions:
         diagonal_row, diagonal_col = flagship_pos[0] + row, flagship_pos[1] + col
+        print(self.board[flagship_pos[0]][flagship_pos[1]])
 
         if 0 <= diagonal_row < 7 and 0 <= diagonal_col < 7: 
+          print("------=-------")
+          print(self.board[diagonal_row][diagonal_col])
           if self.board[diagonal_row][diagonal_col] == 'S':  
               return True  # Vai ter silvers na diagonal do flagship
     return False  
@@ -144,10 +147,13 @@ class Board:
     start_time = time.time()  
     
     self.nodes_evaluated = 0
-    max_depth = 4
+    max_depth = 5
 
     best_score = -sys.maxsize - 1
-    best_play = None
+    best_play = sys.maxsize
+
+    alpha = -float("inf")
+    beta = float("inf")
 
     possible_plays = self.gold_player_possible_plays() if self.ai_player == 'G' else self.silver_player_possible_plays()
     
@@ -160,6 +166,9 @@ class Board:
       if score > best_score:
           best_score = score
           best_play = play
+      alpha = max(alpha, best_score)
+      if beta <= alpha:
+          break
     if best_play:
         self.make_play(*best_play[0], *best_play[1])
         self.switch_player()  
@@ -265,6 +274,7 @@ class Board:
         gold_eval = flagship_dist_edge - silver_near_flagship + gold_protection + capturable_pieces + captured_pieces
 
         if is_flagship_in_danger:
+            print("TÁ EM PERIGO!!!")
             gold_eval -= self.heuristic_weights['flagship_in_danger']
 
         return gold_eval
