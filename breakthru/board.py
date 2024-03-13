@@ -17,8 +17,8 @@ class Board:
       'silvers_near_flagship': 5,
       'gold_pieces_near_flagship': 1,  
       'capturable_pieces': 2,
-      'captured_pieces': 4,
-      'flagship_in_danger': 44444
+      'captured_pieces': 2,
+      'flagship_in_danger': 20
     }
 
     self.choose_each_side()
@@ -147,20 +147,36 @@ class Board:
     start_time = time.time()  
     
     self.nodes_evaluated = 0
-    max_depth = 5
+    max_depth = 4
 
-    best_score = -sys.maxsize - 1
-    best_play = sys.maxsize
+    best_score = -sys.maxsize - 1 
+    best_move = None
 
-    alpha = -float("inf")
-    beta = float("inf")
+    alpha = -sys.maxsize - 1
+    beta = sys.maxsize  
+
 
     possible_plays = self.gold_player_possible_plays() if self.ai_player == 'G' else self.silver_player_possible_plays()
     
     for play in possible_plays: 
-      
       captured_piece = self.make_play(*play[0], *play[1]) 
-      score = self.minimax(0, True, -sys.maxsize - 1, sys.maxsize, max_depth)
+      if self.verify_win() == self.ai_player:
+        # Por algum motivo quando estava há um movimento de vitória, não estava fazendo o movimento
+        end_time = time.time()
+        elapsed_time = end_time - start_time
+        print(f"IA levou {elapsed_time} segundos para jogar, escolhendo uma jogada vencedora imediata.")
+        print(f"Nós avaliados: {self.nodes_evaluated}")
+        if self.on_ai_turn_finished: 
+            self.on_ai_turn_finished(elapsed_time, self.nodes_evaluated)
+        return  
+
+      # Problema do 1 movimento dnv
+      if self.ai_player == "G" and self.is_flagship_in_danger(self.get_flasgship_pos()):
+        self.undo_play(*play[1], *play[0], captured_piece) 
+        continue  
+              
+      
+      score = self.minimax(0, True, alpha, beta, max_depth)
       self.undo_play(*play[1], *play[0], captured_piece)
 
       if score > best_score:
@@ -274,7 +290,6 @@ class Board:
         gold_eval = flagship_dist_edge - silver_near_flagship + gold_protection + capturable_pieces + captured_pieces
 
         if is_flagship_in_danger:
-            print("TÁ EM PERIGO!!!")
             gold_eval -= self.heuristic_weights['flagship_in_danger']
 
         return gold_eval
@@ -289,9 +304,9 @@ class Board:
 
   def evaluate_board(self, result):
       if result == self.player_1: 
-        return -9999999
+        return -99999999999999
       elif result == self.ai_player: 
-        return 9999999
+        return 99999999999999
       else:  
         return self.heuristic_evaluation()
 
@@ -378,7 +393,6 @@ class Board:
     return possible_plays #vai ser um ((pos1, pos2), (targetpos1, targetpos2)) 
   
   def switch_player(self):
-    print('SWITANDO PLAYER! ! !')
     if self.turn == 'G':
       self.turn = 'S'
     elif self.turn == 'S':
